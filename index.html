@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Steins;Gate — Divergence Meter Nixie Style</title>
+    <meta
+      name="description"
+      content="Pick a divergence value on the lock wheels and read it back on Steins;Gate style nixie tubes."
+    />
+    <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png" />
+    <link rel="stylesheet" href="./src/base.css" />
+    <link rel="stylesheet" href="./src/crt.css" />
+    <link rel="stylesheet" href="./src/nixie.css" />
+    <link rel="stylesheet" href="./src/wheel.css" />
+  </head>
+
+  <body class="crt">
+    <div class="crt-layers" aria-hidden="true">
+      <div class="crt-scanlines"></div>
+      <div class="crt-beam"></div>
+      <div class="crt-vignette"></div>
+    </div>
+
+    <header class="credit crt-text">Steins;Gate originally created by © 5pb. / Nitroplus</header>
+
+    <main class="page crt-text">
+      <h1 class="title">Steins;Gate</h1>
+      <p class="subtitle">Divergence Meter Nixie Style</p>
+
+      <p class="slogan">
+        There is no end though there is a start in space. — Infinity.<br />
+        It has own power, it ruins, and it goes though there is a start also in the star. —
+        Finite.<br />
+        Only the person who was wisdom can read the most foolish one from the history.<br />
+        The fish that lives in the sea doesn't know the world in the land. It also ruins and
+        goes if they have wisdom.<br />
+        It is funnier that man exceeds the speed of light than fish start living in the
+        land.<br />
+        It can be said that this is an final ultimatum from the god to the people who can
+        fight.
+      </p>
+
+      <div class="picker-row" id="picker"><button class="upa" type="button" aria-label="Roll a random worldline"></button></div>
+      <div class="readout" id="readout"></div>
+
+      <ul class="worldlines" id="worldlines"></ul>
+    </main>
+
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>

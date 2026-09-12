@@ -1,0 +1,108 @@
+/* Design tokens. All hex colors here. */
+
+:root {
+  --bg: #0a0c10;
+  --surface: #171b24;
+  --border: #262c3a;
+
+  --text: #d8dde7;
+  --text-strong: #f2f5fa;
+  --text-muted: #8a93a6;
+  --text-faint: #838da0;
+
+  --accent: #ffb300;
+
+  /* CRT amber layer. */
+  --crt-text: #ff8b00;
+  --crt-core: #ffe7a0;
+  --crt-halo: rgb(255 139 0 / 0.30);
+  --crt-deep: rgb(255 100 0 / 0.15);
+  --crt-tint: 255 139 0;
+  --crt-bg-inner: #150901;
+  --crt-bg-outer: #050200;
+  --crt-scanline: 0.90;
+  --crt-beam: 0.68;
+  --crt-vignette: 0.55;
+
+  --font-crt: 'VT323', ui-monospace, 'Courier New', monospace;
+  --font-display: 'Chakra Petch', 'Avenir Next Condensed', system-ui, sans-serif;
+
+  /* Nixie — the four layers, bottom to top. Overridable at any scope. */
+  --nixie-silhouette: #cd2228;
+  /* cathode shadow: all 10 digits stacked, always on */
+  --nixie-glow: #ff300b;
+  --nixie-lit: #ffab00;
+  --nixie-grid: #000000;
+  /* anode grid, drawn over the lit stroke too */
+
+  --nixie-op-silhouette: 0.35;
+  --nixie-op-glow: 0.52;
+  --nixie-op-grid: 0.89;
+
+  --nixie-h-sm: 2.07rem;
+  /* height of ONE cell */
+  --nixie-h-lg: 5.33rem;
+  --nixie-h: var(--nixie-h-sm);
+
+  /* Grid strength by size: at small sizes the pitch is ~1.26px, so a full-strength grid is
+     just a darkening layer. Set this yourself when assigning a custom --nixie-h. */
+  --nixie-grid-level: 0.5;
+
+  /* Lock wheel. --wheel-item is the arc height of one digit; the drum radius derives from
+     it and the item count. */
+  --wheel-item: 3rem;
+  --wheel-digit: 2.3rem;
+  --wheel-gap: 0.12rem;
+  --wheel-fade: linear-gradient(180deg,
+      rgb(0 0 0 / 0) 0%,
+      rgb(0 0 0 / 0.3) 26%,
+      rgb(0 0 0 / 1) 50%,
+      rgb(0 0 0 / 0.3) 74%,
+      rgb(0 0 0 / 0) 100%);
+
+  --font-body: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-2xl: 1.75rem;
+  --text-4xl: 3rem;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.6;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  --width-content: 1120px;
+  --radius: 8px;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration: 220ms;
+}
+
+/* Animations use --duration* so this block can switch them off. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration: 0ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

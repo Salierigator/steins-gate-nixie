@@ -1,0 +1,71 @@
+/* Lock-wheel picker: each digit is a drum you drag, scroll or arrow through. Items sit on a
+   cylinder, so a digit rolls away along the curve instead of sliding flat. */
+
+.picker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--wheel-gap);
+}
+
+.wheel {
+  --step: calc(360deg / var(--n));
+  --r: calc(var(--wheel-item) / 2 / tan(calc(180deg / var(--n))));
+  --pos: 0;
+
+  position: relative;
+  width: calc(var(--wheel-digit) * 1.05);
+  height: calc(var(--wheel-item) * 3);
+  perspective: calc(var(--wheel-item) * 10);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  border: 1px solid rgb(var(--crt-tint) / 0.16);
+  border-radius: calc(var(--wheel-digit) / 3);
+  background: rgb(var(--crt-tint) / 0.03);
+  -webkit-mask-image: var(--wheel-fade);
+  mask-image: var(--wheel-fade);
+}
+
+.wheel:focus-visible {
+  outline: none;
+  border-color: rgb(var(--crt-tint) / 0.6);
+}
+
+.wheel.is-dragging {
+  cursor: grabbing;
+}
+
+.wheel-drum {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: translateZ(calc(var(--r) * -1)) rotateX(calc(var(--pos) * var(--step) * -1));
+  transition: transform var(--duration) var(--ease);
+}
+
+.wheel.is-dragging .wheel-drum,
+.wheel.is-spinning .wheel-drum {
+  transition: none;
+}
+
+.wheel-item {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: var(--wheel-item);
+  margin-top: calc(var(--wheel-item) / -2);
+  display: grid;
+  place-items: center;
+  font-size: var(--wheel-digit);
+  line-height: 1;
+  backface-visibility: hidden;
+  transform: rotateX(calc(var(--i) * var(--step))) translateZ(var(--r));
+}
+
+.wheel-dot {
+  align-self: end;
+  padding-bottom: calc(var(--wheel-item) * 0.9);
+  font-size: var(--wheel-digit);
+  line-height: 1;
+}

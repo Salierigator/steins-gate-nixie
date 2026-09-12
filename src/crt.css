@@ -1,0 +1,93 @@
+/* Amber CRT surface: background, text glow and the rolling scan beam. */
+
+@font-face {
+  font-family: 'VT323';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/fonts/vt323-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Chakra Petch';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../assets/fonts/chakrapetch-600-latin.woff2') format('woff2');
+}
+
+body.crt {
+  background: radial-gradient(ellipse at 50% 40%, var(--crt-bg-inner) 0%, var(--crt-bg-outer) 100%);
+  color: var(--crt-text);
+  font-family: var(--font-crt);
+}
+
+/* base.css paints a faint lab grid here; the CRT gradient replaces it. */
+body.crt::before {
+  content: none;
+}
+
+.crt-text {
+  text-shadow:
+    0 0 1px var(--crt-core),
+    0 0 3px var(--crt-text),
+    0 0 9px var(--crt-halo),
+    0 0 20px var(--crt-deep);
+}
+
+/* ---------- Screen surface layers ---------- */
+
+.crt-layers {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.crt-layers > * {
+  position: absolute;
+  inset: 0;
+}
+
+.crt-scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    rgb(0 0 0 / 0.6) 0px,
+    rgb(0 0 0 / 0.6) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  opacity: var(--crt-scanline);
+  mix-blend-mode: multiply;
+}
+
+.crt-vignette {
+  background: radial-gradient(
+    circle at 50% 50%,
+    transparent 60%,
+    rgb(0 0 0 / 0.4) 85%,
+    rgb(0 0 0 / 0.9) 100%
+  );
+  opacity: var(--crt-vignette);
+}
+
+/* The horizontal beam rolling down the tube. */
+.crt-beam {
+  inset: auto 0 auto 0;
+  height: 18vh;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgb(var(--crt-tint) / 0.04) 50%,
+    rgb(var(--crt-tint) / 0.1) 80%,
+    transparent 100%
+  );
+  opacity: var(--crt-beam);
+  animation: crt-roll 9s linear infinite;
+}
+
+@keyframes crt-roll {
+  from { transform: translateY(-20vh) }
+  to { transform: translateY(100vh) }
+}

@@ -1,0 +1,201 @@
+@import './tokens.css';
+
+/* ---------- Reset ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+input,
+button,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/* ---------- Background: faint lab grid ---------- */
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.014) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.014) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/* ---------- Page ---------- */
+
+.credit {
+  position: relative;
+  z-index: 2;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid rgb(var(--crt-tint) / 0.35);
+  text-align: left;
+  font-size: var(--text-lg);
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+
+.page {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 54rem;
+  margin-inline: auto;
+  padding: var(--space-7) var(--space-4) var(--space-8);
+  text-align: center;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 14vw, 6.25rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+.subtitle {
+  margin-top: var(--space-3);
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 4.2vw, 2rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  opacity: 0.87;
+}
+
+.slogan {
+  margin-top: var(--space-6);
+  font-size: clamp(0.8rem, 2.8vw, 1.05rem);
+  line-height: 1.45;
+  letter-spacing: 0.015em;
+  opacity: 0.85;
+}
+
+.picker-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  column-gap: var(--space-5);
+  margin-top: var(--space-7);
+}
+
+/* Drawn as a mask so it takes the CRT amber instead of the SVG's own fill. The mask lives on
+   ::before and the filter on the button: on one element the mask would clip the halo away. */
+.upa {
+  --upa-color: var(--crt-text);
+  --upa-core: var(--crt-core);
+  --upa-glow-color: var(--nixie-glow);
+  --upa-glow-size: 10px;
+  --upa-glow-strength: 0.7;
+
+  position: relative;
+  justify-self: end;
+  translate: -1rem 0;
+  /* x (− left, + right), y (− up, + down), e.g. -1rem 0.5rem */
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  height: 4.16rem;
+  opacity: 0.9;
+  aspect-ratio: 520 / 769;
+  filter:
+    drop-shadow(0 0 calc(var(--upa-glow-size) * 0.1) color-mix(in srgb, var(--upa-core) calc(var(--upa-glow-strength) * 60%), transparent)) drop-shadow(0 0 var(--upa-glow-size) color-mix(in srgb, var(--upa-glow-color) calc(var(--upa-glow-strength) * 100%), transparent)) drop-shadow(0 0 calc(var(--upa-glow-size) * 2.5) color-mix(in srgb, var(--upa-glow-color) calc(var(--upa-glow-strength) * 50%), transparent));
+}
+
+.upa::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--upa-color);
+  -webkit-mask: url('../assets/upa.svg') center / contain no-repeat;
+  mask: url('../assets/upa.svg') center / contain no-repeat;
+}
+
+/* Registered so the keyframes can interpolate them. Strength must stay <= 1 (color-mix cap). */
+@property --upa-glow-size {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 10px
+}
+
+@property --upa-glow-strength {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0.7
+}
+
+@property --upa-color {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent
+}
+
+.upa.flash {
+  --upa-flash-size: 28px;
+  --upa-flash-strength: 0.7;
+  animation: upa-flash var(--duration) ease-out;
+}
+
+@keyframes upa-flash {
+  from {
+    --upa-glow-size: var(--upa-flash-size);
+    --upa-glow-strength: var(--upa-flash-strength);
+    --upa-color: var(--upa-core);
+    opacity: 1;
+  }
+}
+
+/* Custom cell size, so --nixie-grid-level goes with it — see tokens.css. */
+.readout {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-6);
+  --nixie-h: clamp(2.6rem, 13vw, var(--nixie-h-lg));
+  --nixie-grid-level: 1;
+}
+
+.worldlines {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  justify-content: center;
+  gap: var(--space-5) var(--space-4);
+  margin-top: var(--space-8);
+  padding: 0;
+  list-style: none;
+  --nixie-h: clamp(1.3rem, 4.4vw, var(--nixie-h-sm));
+}
+
+@media (max-width: 40rem) {
+  .worldlines {
+    grid-template-columns: repeat(2, auto);
+  }
+}
