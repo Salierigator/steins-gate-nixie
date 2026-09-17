@@ -1,56 +1,4 @@
-@import './tokens.css';
-
-/* ---------- Reset ---------- */
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-* {
-  margin: 0;
-}
-
-body {
-  min-height: 100vh;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  line-height: var(--leading-normal);
-  -webkit-font-smoothing: antialiased;
-}
-
-img,
-svg {
-  display: block;
-  max-width: 100%;
-  height: auto;
-}
-
-input,
-button,
-select {
-  font: inherit;
-  color: inherit;
-}
-
-/* ---------- Background: faint lab grid ---------- */
-
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgb(255 255 255 / 0.014) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(255 255 255 / 0.014) 1px, transparent 1px);
-  background-size: 44px 44px;
-}
-
-/* ---------- Page ---------- */
+/* Page layout: credit, title, slogan, picker row and readout. */
 
 .credit {
   position: relative;
@@ -75,20 +23,10 @@ body::before {
 
 .title {
   font-family: var(--font-display);
-  font-size: clamp(3rem, 14vw, 6.25rem);
+  font-size: clamp(2rem, 10.5vw, 5.5rem);
   font-weight: 600;
   line-height: 1;
   letter-spacing: 0.01em;
-}
-
-.subtitle {
-  margin-top: var(--space-3);
-  font-family: var(--font-display);
-  font-size: clamp(1.05rem, 4.2vw, 2rem);
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: 0.12em;
-  opacity: 0.87;
 }
 
 .slogan {
@@ -136,8 +74,8 @@ body::before {
   position: absolute;
   inset: 0;
   background-color: var(--upa-color);
-  -webkit-mask: url('../assets/upa.svg') center / contain no-repeat;
-  mask: url('../assets/upa.svg') center / contain no-repeat;
+  -webkit-mask: url('../../assets/upa.svg') center / contain no-repeat;
+  mask: url('../../assets/upa.svg') center / contain no-repeat;
 }
 
 /* Registered so the keyframes can interpolate them. Strength must stay <= 1 (color-mix cap). */
@@ -181,21 +119,4 @@ body::before {
   margin-top: var(--space-6);
   --nixie-h: clamp(2.6rem, 13vw, var(--nixie-h-lg));
   --nixie-grid-level: 1;
-}
-
-.worldlines {
-  display: grid;
-  grid-template-columns: repeat(4, auto);
-  justify-content: center;
-  gap: var(--space-5) var(--space-4);
-  margin-top: var(--space-8);
-  padding: 0;
-  list-style: none;
-  --nixie-h: clamp(1.3rem, 4.4vw, var(--nixie-h-sm));
-}
-
-@media (max-width: 40rem) {
-  .worldlines {
-    grid-template-columns: repeat(2, auto);
-  }
 }

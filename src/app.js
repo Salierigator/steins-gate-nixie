@@ -1,5 +1,6 @@
-import * as Nixie from './nixie.js';
-import { picker } from './wheel.js';
+import * as Nixie from './nixie/meter.js';
+import { studio } from './studio/studio.js';
+import { picker } from './wheel/wheel.js';
 import { WORLDLINES } from './values.js';
 
 await Nixie.mount();
@@ -43,10 +44,6 @@ if (pickerHost && readout) {
   });
 }
 
-document.getElementById('worldlines')?.append(
-  ...WORLDLINES.map((value) => {
-    const li = document.createElement('li');
-    li.append(Nixie.meter(value));
-    return li;
-  }),
-);
+const studioHost = document.getElementById('studio');
+const panel = document.getElementById('panel');
+if (studioHost && panel) studio(studioHost, panel);

@@ -1,4 +1,4 @@
-# Steins;Gate — Divergence Meter Nixie Style
+# Steins;Gate Nixie
 
 A personal project recreating the nixie tube look of the divergence meter from Steins;Gate.
 Turn the lock wheels, or click the upa, to pick a worldline.

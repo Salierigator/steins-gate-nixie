@@ -23,6 +23,9 @@
   --crt-scanline: 0.90;
   --crt-beam: 0.68;
   --crt-vignette: 0.55;
+  --panel-bg: #0c0500;
+  --panel-line: rgb(255 139 0 / 0.35);
+  --panel-rule: rgb(255 139 0 / 0.14);
 
   --font-crt: 'VT323', ui-monospace, 'Courier New', monospace;
   --font-display: 'Chakra Petch', 'Avenir Next Condensed', system-ui, sans-serif;
@@ -47,6 +50,10 @@
   /* Grid strength by size: at small sizes the pitch is ~1.26px, so a full-strength grid is
      just a darkening layer. Set this yourself when assigning a custom --nixie-h. */
   --nixie-grid-level: 0.5;
+
+  /* Nixie text editor. */
+  --nixie-text-bg: #000000;
+  --nixie-selection: rgb(255 171 0 / 0.16);
 
   /* Lock wheel. --wheel-item is the arc height of one digit; the drum radius derives from
      it and the item count. */

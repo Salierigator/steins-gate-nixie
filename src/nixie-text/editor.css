@@ -1,0 +1,41 @@
+/* Nixie text editor: canvas rows under a caret, selection and a hidden textarea. */
+
+/* The backdrop lives on the scroller itself: a composited scroller may isolate blending from ancestors. */
+.nixie-text {
+  --nixie-grid-level: 1;
+  overflow-x: auto;
+  cursor: text;
+  touch-action: pan-y;
+  background: var(--nixie-text-bg);
+}
+
+.nixie-text-sheet { position: relative }
+.nixie-text-sheet canvas { position: absolute; left: 0; mix-blend-mode: screen; pointer-events: none }
+
+.nixie-text-caret {
+  position: absolute;
+  width: 3px;
+  background: var(--nixie-lit);
+  box-shadow: 0 0 4px var(--nixie-lit), 0 0 12px var(--nixie-glow);
+  animation: nixie-caret 1.06s steps(1) infinite;
+  pointer-events: none;
+}
+
+.nixie-text:not(:focus-within) .nixie-text-caret { display: none }
+
+@keyframes nixie-caret { 50% { opacity: 0 } }
+
+.nixie-text-sel { position: absolute; background: var(--nixie-selection); pointer-events: none }
+
+.nixie-text-input {
+  position: absolute;
+  width: 1px;
+  height: 1em;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  resize: none;
+  overflow: hidden;
+  white-space: pre;
+  pointer-events: none;
+}

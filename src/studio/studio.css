@@ -1,0 +1,215 @@
+/* Nixie text frame, and its control panel: a drawer on the left, a bottom sheet on phones. */
+
+.studio {
+  position: relative;
+  z-index: 2;
+  padding: 0 var(--space-4) var(--space-8);
+}
+
+/* Outline rather than border, so a full-width frame does not overflow its column. */
+.studio .nixie-text {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  outline: 1px solid rgb(var(--crt-tint) / 0.7);
+  box-shadow: 0 0 14px var(--crt-halo);
+}
+
+.panel {
+  position: fixed;
+  z-index: 3;
+  top: 5rem;
+  left: 0;
+  width: 20rem;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  color-scheme: dark;
+  translate: -100% 0;
+  transition: translate var(--duration) var(--ease);
+}
+
+.panel.is-open {
+  translate: 0 0;
+}
+
+/* Opaque phosphor screen: scanlines over static grain, dark at the edges, with an inner terminal rule. */
+.panel-form,
+.panel-toggle {
+  background-color: var(--panel-bg);
+  background-image:
+    repeating-linear-gradient(0deg, rgb(0 0 0 / 0.4) 0 1px, transparent 1px 3px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.55 0 0 0 0 0 0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 50% 35%, rgb(var(--crt-tint) / 0.1), transparent 75%);
+  border: 1px solid var(--panel-line);
+  box-shadow:
+    inset 0 0 2.5rem rgb(0 0 0 / 0.85),
+    0 0 1.25rem rgb(var(--crt-tint) / 0.1);
+}
+
+.panel-form {
+  display: grid;
+  gap: var(--space-4);
+  max-height: calc(100vh - 7rem);
+  overflow-y: auto;
+  padding: var(--space-5);
+  border-left: 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  outline: 1px solid var(--panel-rule);
+  outline-offset: -0.4rem;
+  scrollbar-color: var(--panel-line) transparent;
+  scrollbar-width: thin;
+}
+
+.panel-toggle {
+  position: absolute;
+  top: var(--space-4);
+  left: 100%;
+  padding: var(--space-3) var(--space-1);
+  border-left: 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  writing-mode: vertical-rl;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.panel-field {
+  display: grid;
+  grid-template-columns: 1fr 6rem;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.panel-field.wide {
+  grid-template-columns: auto 1fr;
+}
+
+.panel-field input[type='range'] {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.panel input {
+  accent-color: var(--crt-text);
+}
+
+.panel input[type='number'],
+.panel select {
+  width: 100%;
+  padding: 0 var(--space-1);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-line);
+  border-radius: 2px;
+  text-align: right;
+  -moz-appearance: textfield;
+}
+
+.panel input[type='number']::-webkit-inner-spin-button,
+.panel input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+.panel input[type='color'] {
+  width: 100%;
+  height: 1.5rem;
+  padding: 2px;
+  background: none;
+  border: 1px solid var(--panel-line);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.panel input[type='color']::-webkit-color-swatch-wrapper { padding: 0 }
+.panel input[type='color']::-webkit-color-swatch { border: 0 }
+.panel input[type='color']::-moz-color-swatch { border: 0 }
+
+.panel output {
+  text-align: right;
+}
+
+.panel-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.panel-save {
+  padding: var(--space-2);
+  background: rgb(var(--crt-tint) / 0.12);
+  border: 1px solid var(--crt-text);
+  border-radius: 2px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.panel-save:hover {
+  background: rgb(var(--crt-tint) / 0.24);
+}
+
+.panel-save:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.panel-advanced summary {
+  list-style: none;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.panel-advanced summary::-webkit-details-marker {
+  display: none;
+}
+
+.panel-advanced summary::before {
+  content: '[+] ';
+}
+
+.panel-advanced[open] summary::before {
+  content: '[−] ';
+}
+
+.panel-group {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding: 0;
+  border: 0;
+  border-top: 1px dashed var(--panel-line);
+}
+
+.panel-group legend {
+  padding-right: var(--space-2);
+  font-size: var(--text-base);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+@media (max-width: 40rem) {
+  .panel {
+    inset: auto 0 0;
+    width: auto;
+    translate: 0 100%;
+  }
+
+  .panel-form {
+    max-height: 60vh;
+    padding-bottom: max(var(--space-5), env(safe-area-inset-bottom));
+    border: 1px solid var(--panel-line);
+    border-bottom: 0;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .panel-toggle {
+    top: auto;
+    bottom: 100%;
+    left: auto;
+    right: var(--space-4);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--panel-line);
+    border-bottom: 0;
+    border-radius: var(--radius) var(--radius) 0 0;
+    writing-mode: horizontal-tb;
+  }
+}

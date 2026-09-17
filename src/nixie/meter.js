@@ -6,7 +6,9 @@
  *   Nixie.char('7');              // one cell: '0'-'9' | '.' | null (unlit tube)
  */
 
-const SPRITE_URL = new URL('../assets/nixie-sprite.svg', import.meta.url);
+import { blink, delay } from './blink.js';
+
+const SPRITE_URL = new URL('../../assets/nixie-sprite.svg', import.meta.url);
 const NS = 'http://www.w3.org/2000/svg';
 
 /** Cell advance and Frame height in font units — read from the sprite, never retyped. */
@@ -93,15 +95,7 @@ export function meter(value, size = 'sm') {
   return el;
 }
 
-/* ---------- Flicker ----------
- * Poisson process per lit digit, fresh keyframes each blink so no pattern emerges. WAAPI
- * ignores the reduced-motion CSS block, hence the matchMedia check. */
-
-const RATE = 1; // blinks per minute per lit digit
-const LOW = 0.1; // opacity floor
-const DUR = 350; // ms, longest blink
-
-const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+/* ---------- Flicker ---------- */
 
 /** Per lit cell: [stroke, halo source]. Both must dim together. */
 const cells = [];
@@ -113,7 +107,7 @@ function register(svg) {
   cells.push(parts);
 
   /* Microtask: wait until the whole render pass has registered, otherwise the first delay is drawn from a single cell (~60s). */
-  if (!running && !reduce.matches) {
+  if (!running) {
     running = true;
     queueMicrotask(schedule);
   }
@@ -129,36 +123,16 @@ function pick() {
   return null;
 }
 
-function frames() {
-  const dips = 2 + Math.floor(Math.random() * 3);
-  const points = Array.from({ length: dips * 2 }, () => Math.random()).sort((a, b) => a - b);
-
-  return [
-    { opacity: 1, offset: 0, easing: 'steps(1,end)' },
-    ...points.map((point, i) => ({
-      opacity: i % 2 ? 0.82 + Math.random() * 0.18 : LOW + Math.random() * (1 - LOW) * 0.3,
-      offset: point * 0.95,
-      easing: 'steps(1,end)',
-    })),
-    { opacity: 1, offset: 1 },
-  ];
-}
-
 function schedule() {
   /* Drop swapped-out cells first: the rate scales with cells.length. */
   for (let i = cells.length - 1; i >= 0; i--) {
     if (!cells[i][0].isConnected) cells.splice(i, 1);
   }
 
-  const rate = (RATE / 60) * Math.max(cells.length, 1); // events/second across the page
-  setTimeout(
-    () => {
-      const parts = pick();
-      const keyframes = frames();
-      const duration = 60 + Math.random() * (DUR - 60);
-      parts?.forEach((part) => part.animate(keyframes, duration)); // same tick -> in step
-      schedule();
-    },
-    (-Math.log(1 - Math.random()) / rate) * 1000,
-  );
+  setTimeout(() => {
+    const parts = pick();
+    const { keyframes, duration } = blink();
+    parts?.forEach((part) => part.animate(keyframes, duration)); // same tick -> in step
+    schedule();
+  }, delay(cells.length));
 }

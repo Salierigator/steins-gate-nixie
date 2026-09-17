@@ -3,16 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Steins;Gate — Divergence Meter Nixie Style</title>
+    <title>Steins;Gate Nixie</title>
     <meta
       name="description"
       content="Pick a divergence value on the lock wheels and read it back on Steins;Gate style nixie tubes."
     />
     <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png" />
-    <link rel="stylesheet" href="./src/base.css" />
-    <link rel="stylesheet" href="./src/crt.css" />
-    <link rel="stylesheet" href="./src/nixie.css" />
-    <link rel="stylesheet" href="./src/wheel.css" />
+    <link rel="stylesheet" href="./src/styles/base.css" />
+    <link rel="stylesheet" href="./src/styles/page.css" />
+    <link rel="stylesheet" href="./src/styles/crt.css" />
+    <link rel="stylesheet" href="./src/nixie/meter.css" />
+    <link rel="stylesheet" href="./src/wheel/wheel.css" />
+    <link rel="stylesheet" href="./src/nixie-text/editor.css" />
+    <link rel="stylesheet" href="./src/studio/studio.css" />
   </head>
 
   <body class="crt">
@@ -25,8 +28,7 @@
     <header class="credit crt-text">Steins;Gate originally created by © 5pb. / Nitroplus</header>
 
     <main class="page crt-text">
-      <h1 class="title">Steins;Gate</h1>
-      <p class="subtitle">Divergence Meter Nixie Style</p>
+      <h1 class="title">Steins;Gate Nixie</h1>
 
       <p class="slogan">
         There is no end though there is a start in space. — Infinity.<br />
@@ -43,9 +45,114 @@
 
       <div class="picker-row" id="picker"><button class="upa" type="button" aria-label="Roll a random worldline"></button></div>
       <div class="readout" id="readout"></div>
-
-      <ul class="worldlines" id="worldlines"></ul>
     </main>
+
+    <section class="studio" id="studio" aria-label="Nixie text"></section>
+
+    <aside class="panel crt-text" id="panel">
+      <button class="panel-toggle" type="button" aria-controls="panel-form">Controls</button>
+      <form class="panel-form" id="panel-form">
+        <div class="panel-field">
+          <label for="panel-width">Width</label>
+          <input id="panel-width" name="width" type="number" min="160" max="2400" />
+          <input name="width" type="range" min="160" max="2400" aria-label="Width" />
+        </div>
+        <div class="panel-field">
+          <label for="panel-height">Height</label>
+          <input id="panel-height" name="height" type="number" min="60" max="4000" />
+          <input name="height" type="range" min="60" max="4000" aria-label="Height" />
+        </div>
+        <div class="panel-field">
+          <label for="panel-cell">Text size</label>
+          <input id="panel-cell" name="cellH" type="number" min="16" max="160" />
+          <input name="cellH" type="range" min="16" max="160" aria-label="Text size" />
+        </div>
+        <label class="panel-check"><input name="fill" type="checkbox" /> Empty tubes</label>
+        <div class="panel-field wide">
+          <label for="panel-scale">PNG</label>
+          <output for="panel-scale"></output>
+          <input id="panel-scale" name="scale" type="range" min="1" max="4" step="0.5" />
+        </div>
+        <button class="panel-save" type="button">Save PNG</button>
+        <details class="panel-advanced">
+          <summary>Advanced</summary>
+          <fieldset class="panel-group">
+            <legend>Layout</legend>
+            <div class="panel-field">
+              <label for="panel-gap">Line gap</label>
+              <input id="panel-gap" name="gap" type="number" min="0" max="40" />
+              <input name="gap" type="range" min="0" max="40" aria-label="Line gap" />
+            </div>
+            <div class="panel-field">
+              <label for="panel-wrap">Wrap</label>
+              <select id="panel-wrap" name="wrap"><option value="word">Word</option><option value="char">Char</option></select>
+            </div>
+          </fieldset>
+          <fieldset class="panel-group">
+            <legend>Colors</legend>
+            <div class="panel-field">
+              <label for="panel-lit">Lit</label>
+              <input id="panel-lit" name="--nixie-lit" type="color" />
+            </div>
+            <div class="panel-field">
+              <label for="panel-glow">Glow</label>
+              <input id="panel-glow" name="--nixie-glow" type="color" />
+            </div>
+            <div class="panel-field">
+              <label for="panel-sil">Silhouette</label>
+              <input id="panel-sil" name="--nixie-silhouette" type="color" />
+            </div>
+            <div class="panel-field">
+              <label for="panel-grid">Grid</label>
+              <input id="panel-grid" name="--nixie-grid" type="color" />
+            </div>
+          </fieldset>
+          <fieldset class="panel-group">
+            <legend>Glow</legend>
+            <div class="panel-field">
+              <label for="panel-op-glow">Opacity</label>
+              <input id="panel-op-glow" name="--nixie-op-glow" type="number" min="0" max="1" step="0.01" />
+              <input name="--nixie-op-glow" type="range" min="0" max="1" step="0.01" aria-label="Glow opacity" />
+            </div>
+            <div class="panel-field">
+              <label for="panel-sigma">Radius</label>
+              <input id="panel-sigma" name="sigma" type="number" min="1" max="120" step="0.1" />
+              <input name="sigma" type="range" min="1" max="120" step="0.1" aria-label="Radius" />
+            </div>
+            <div class="panel-field">
+              <label for="panel-gain">Gain</label>
+              <input id="panel-gain" name="gain" type="number" min="0.5" max="8" step="0.01" />
+              <input name="gain" type="range" min="0.5" max="8" step="0.01" aria-label="Gain" />
+            </div>
+          </fieldset>
+          <fieldset class="panel-group">
+            <legend>Silhouette</legend>
+            <div class="panel-field">
+              <label for="panel-op-sil">Opacity</label>
+              <input id="panel-op-sil" name="--nixie-op-silhouette" type="number" min="0" max="1" step="0.01" />
+              <input name="--nixie-op-silhouette" type="range" min="0" max="1" step="0.01" aria-label="Silhouette opacity" />
+            </div>
+            <div class="panel-field">
+              <label for="panel-sil-mode">Shape</label>
+              <select id="panel-sil-mode" name="silMode"><option value="char">Per char</option><option value="digit">Fixed</option></select>
+            </div>
+          </fieldset>
+          <fieldset class="panel-group">
+            <legend>Grid</legend>
+            <div class="panel-field">
+              <label for="panel-op-grid">Opacity</label>
+              <input id="panel-op-grid" name="--nixie-op-grid" type="number" min="0" max="1" step="0.01" />
+              <input name="--nixie-op-grid" type="range" min="0" max="1" step="0.01" aria-label="Grid opacity" />
+            </div>
+            <div class="panel-field">
+              <label for="panel-grid-w">Stroke</label>
+              <input id="panel-grid-w" name="gridW" type="number" min="0" max="8" step="0.1" />
+              <input name="gridW" type="range" min="0" max="8" step="0.1" aria-label="Stroke" />
+            </div>
+          </fieldset>
+        </details>
+      </form>
+    </aside>
 
     <script type="module" src="./src/app.js"></script>
   </body>

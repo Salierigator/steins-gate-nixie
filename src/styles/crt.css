@@ -5,7 +5,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('../assets/fonts/vt323-latin.woff2') format('woff2');
+  src: url('../../assets/fonts/vt323-latin.woff2') format('woff2');
 }
 
 @font-face {
@@ -13,7 +13,7 @@
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url('../assets/fonts/chakrapetch-600-latin.woff2') format('woff2');
+  src: url('../../assets/fonts/chakrapetch-600-latin.woff2') format('woff2');
 }
 
 body.crt {
@@ -29,9 +29,8 @@ body.crt::before {
 
 .crt-text {
   text-shadow:
-    0 0 1px var(--crt-core),
-    0 0 3px var(--crt-text),
-    0 0 9px var(--crt-halo),
+    0 0 2px rgb(var(--crt-tint) / 0.5),
+    0 0 8px var(--crt-halo),
     0 0 20px var(--crt-deep);
 }
 
