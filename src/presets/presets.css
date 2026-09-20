@@ -1,0 +1,65 @@
+/* Character presets over the text frame: gray until picked, then full color with its own glow. */
+
+.preset-strip {
+  --chip: 40px;
+
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  /* .studio-note is absolute and pushes nothing, so clear its ~29px here. */
+  margin-bottom: var(--space-7);
+}
+
+.preset {
+  padding: 0;
+  border: 0;
+  background: none;
+  line-height: 0;
+  cursor: pointer;
+}
+
+.preset:focus-visible {
+  outline: 1px dashed var(--crt-text);
+  outline-offset: 3px;
+}
+
+/* Square by ratio, not by a second length: on a narrow screen the row shrinks the chips and a
+   fixed height would squash the faces instead of scaling them. */
+.preset img {
+  display: block;
+  width: var(--chip);
+  aspect-ratio: 1;
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+.preset[aria-pressed='true'] {
+  filter: drop-shadow(0 0 4px var(--chip-core)) drop-shadow(0 0 11px var(--chip-halo));
+}
+
+.preset[aria-pressed='true'] img {
+  filter: none;
+  opacity: 1;
+}
+
+/* Safari keeps the old halo when the filter changes on click; one layer per chip clears it. */
+@supports (-webkit-hyphens: none) {
+  .preset {
+    will-change: filter;
+  }
+}
+
+/* The art is 54px: 40px is an upscale from 2dppx up, but a downscale at dpr 1, where
+   nearest-neighbour would drop pixels instead of sharpening them. */
+@media (min-resolution: 2dppx) {
+  .preset img {
+    image-rendering: pixelated;
+  }
+}
+
+@media (max-width: 40rem) {
+  .preset-strip {
+    --chip: 32px;
+    gap: var(--space-1);
+  }
+}

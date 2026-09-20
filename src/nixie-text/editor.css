@@ -3,6 +3,9 @@
 /* The backdrop lives on the scroller itself: a composited scroller may isolate blending from ancestors. */
 .nixie-text {
   --nixie-grid-level: 1;
+  /* Declared here, not in tokens.css: var() in a custom property resolves where it is written,
+     so at :root it would keep the default lit color instead of this frame's. */
+  --nixie-selection: color-mix(in srgb, var(--nixie-lit) 16%, transparent);
   overflow-x: auto;
   cursor: text;
   touch-action: pan-y;

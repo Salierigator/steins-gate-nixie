@@ -1,7 +1,7 @@
 /**
  * Nixie text frame and its control panel.
  *
- *   studio(host, panel); // host gets the editor, panel holds .panel-toggle and the controls form
+ *   studio(host, panel); // host gets the character strip and the editor, panel holds .panel-toggle and the controls form
  *
  * Form fields named after editor options go straight to editor.set(), fields named --nixie-* set that
  * token on the editor; `scale` only sets the PNG export size.
@@ -9,6 +9,7 @@
 
 import { textEditor } from '../nixie-text/editor.js';
 import { fits } from '../nixie-text/png.js';
+import { presetStrip } from '../presets/presets.js';
 
 const RATIOS = { '16:9': 16 / 9, '9:16': 9 / 16, '4:3': 4 / 3, '3:4': 3 / 4, '1:1': 1 };
 const LOCAL = new Set(['scale', 'ratio']); // panel-only fields, never editor options
@@ -30,7 +31,7 @@ export function studio(host, panel) {
   let scale = 2;
   const frame = document.createElement('div');
   frame.className = 'studio-frame';
-  host.append(frame);
+  host.append(presetStrip(preset), frame);
   const editor = textEditor(frame, opts);
   editor.value = 'El Psy Kongroo.';
 
@@ -52,9 +53,10 @@ export function studio(host, panel) {
   const options = editor.options;
   const inputs = form.querySelectorAll('input');
   const ranges = form.querySelectorAll('[type="range"]');
+  const base = {}; // token values from the stylesheet: what an empty style attribute renders
   for (const input of inputs) {
     const { name } = input;
-    if (name.startsWith('--')) input.value = tokens.getPropertyValue(name).trim();
+    if (name.startsWith('--')) base[name] = input.value = tokens.getPropertyValue(name).trim();
     else if (input.type === 'radio') {
       if (name in options) input.checked = input.value === String(options[name]);
     }
@@ -236,7 +238,7 @@ export function studio(host, panel) {
       const { name } = input;
       if (!name || LOCAL.has(name)) continue;
       if (name.startsWith('--')) {
-        if (input.value !== input.defaultValue) editor.el.style.setProperty(name, input.value);
+        if (input.value !== base[name]) editor.el.style.setProperty(name, input.value);
         continue;
       }
       const value = input.type === 'radio' ? (input.checked ? parse(input.value) : now[name]) : Number(input.value);
@@ -246,6 +248,17 @@ export function studio(host, panel) {
     ranges.forEach(paint);
     if (Object.keys(patch).length > 0 || (editor.el.getAttribute('style') ?? '') !== was) editor.set(patch);
     showSize();
+  }
+
+  /* Picking a character makes its colors the frame's defaults, so Reset comes back to them. */
+  function preset({ lit, glow, sil }) {
+    drop();
+    const colors = { '--nixie-lit': lit, '--nixie-glow': glow, '--nixie-silhouette': sil };
+    for (const [name, value] of Object.entries(colors)) {
+      for (const twin of form.querySelectorAll(`[name="${name}"]`)) twin.defaultValue = value;
+      setField(name, value);
+    }
+    sync();
   }
 
   /* One button: Reset, then Undo until the next edit. */
