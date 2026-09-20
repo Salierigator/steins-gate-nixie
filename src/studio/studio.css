@@ -13,15 +13,15 @@
   margin-inline: auto;
 }
 
-/* One line over the frame: frame size on the left, the ratio warning on the right. */
+/* One line over the frame: frame size and the ratio warning on the left, Fit on the right. */
 .studio-note {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 100%;
   display: flex;
-  justify-content: space-between;
-  gap: var(--space-4);
+  flex-wrap: wrap;
+  gap: 0 var(--space-2);
   padding-bottom: var(--space-1);
   color: var(--crt-text);
   font-family: var(--font-crt);
@@ -31,7 +31,17 @@
   text-shadow: 0 0 8px var(--crt-halo);
 }
 
+.studio-note > * {
+  white-space: nowrap;
+}
+
+.studio-warn {
+  color: var(--crt-warn);
+  text-shadow: 0 0 10px var(--crt-warn);
+}
+
 .studio-fit {
+  margin-inline-start: auto;
   padding: 0;
   background: none;
   border: 0;
@@ -365,6 +375,10 @@
 }
 
 @media (max-width: 40rem) {
+  .studio-note {
+    font-size: 1rem;
+  }
+
   .panel {
     inset: auto 0 0;
     width: auto;

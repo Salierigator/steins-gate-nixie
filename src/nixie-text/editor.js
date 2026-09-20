@@ -7,7 +7,7 @@
  *   editor.set({ width: 800, height: 400 }); // frame in px: columns follow, rows fill it, the grid is centered
  *   editor.set();             // rebuild after changing --nixie-* tokens
  *   editor.over();            // does the text make the frame taller than `height`?
- *   editor.fit(8);            // largest cellH >= 8, no larger than now, whose text still fits
+ *   editor.fit(8, 160);       // largest cellH on the 8 + n×0.5 grid, up to 160, whose text still fits
  *   editor.options;           // a copy of the current options
  *   editor.png(2);            // Promise<Blob> of the whole frame at 2×
  *   editor.el.addEventListener('input', ...);
@@ -150,12 +150,12 @@ export function textEditor(host, options) {
       return h !== null && h > frameH();
     },
 
-    /** Largest cell height on the `min` grid, no larger than now, whose text still fits the frame; null if none does. */
-    fit(min = 1) {
+    /** Largest cell height on the `min` grid, no larger than `max`, whose text still fits the frame; null if none does. */
+    fit(min = 1, max = view.opts.cellH) {
       if (measure() === null) return null;
       const limit = frameH();
       let lo = -1; // steps above `min`, all of which fit; -1 once `min` itself is too tall
-      let hi = Math.floor((view.opts.cellH - min) / STEP) + 1;
+      let hi = Math.floor((max - min) / STEP) + 1;
       while (hi - lo > 1) {
         const mid = Math.floor((lo + hi) / 2);
         if (measure(min + mid * STEP) <= limit) lo = mid;

@@ -38,15 +38,14 @@ export function studio(host, panel) {
   note.className = 'studio-note';
   const dims = document.createElement('span');
   dims.className = 'studio-dims';
-  const over = document.createElement('span');
-  over.className = 'studio-over';
-  over.hidden = true;
   const warn = document.createElement('span');
+  warn.className = 'studio-warn';
+  warn.hidden = true;
   const fit = document.createElement('button');
   fit.type = 'button';
   fit.className = 'studio-fit';
-  over.append(warn, fit);
-  note.append(dims, over);
+  fit.hidden = true;
+  note.append(dims, warn, fit);
   frame.append(note);
 
   const tokens = getComputedStyle(editor.el);
@@ -73,28 +72,42 @@ export function studio(host, panel) {
   };
   ranges.forEach(paint);
 
+  let target = null; // the text size Fit would pick, null while Fit has nothing to offer
   let stuck = false; // the smallest text size still does not fit
 
   function showSize() {
     const [w, h] = editor.pngSize(scale);
-    size.value = `${scale}× · ${w}×${h}`;
+    size.value = `${scale}× : ${w}×${h}`;
     const [fw, fh] = editor.pngSize(1);
     dims.textContent = `${fw} × ${fh} px`;
 
     const ratio = form.elements.ratio.value;
-    over.hidden = !(ratio && editor.over());
-    if (over.hidden) return;
-    warn.textContent = `! Over ${ratio} : `;
-    warn.title = `The text makes the frame taller than ${ratio}, so the PNG will not keep that shape.`;
-    stuck = editor.fit(Number(form.elements.cellH[0].min)) === null;
+    const over = Boolean(ratio) && editor.over();
+    warn.hidden = !over;
+    if (over) {
+      warn.textContent = `[ Over ${ratio} ! ]`;
+      warn.title = `The text makes the frame taller than ${ratio}, so the PNG will not keep that shape.`;
+    }
+
+    const cell = form.elements.cellH[0];
+    const now = editor.options.cellH; // what is drawn, not what a half-typed box says
+    const best = editor.fit(Number(cell.min), Number(cell.max));
+    stuck = over && best === null;
+    // a free frame only grows the text to fill it; a locked one also shrinks it back into shape
+    target = best !== null && best !== now && (over || best > now) ? best : null;
+    fit.hidden = target === null && !stuck;
+    if (fit.hidden) return;
     fit.textContent = stuck ? "can't fit" : '[ Fit ? ]';
     fit.title = stuck
       ? 'Even the smallest text size does not fit this text; make the frame bigger.'
-      : 'Lower the text size until the text fits the frame again.';
+      : target > now
+        ? 'Raise the text size until the text fills the frame.'
+        : 'Lower the text size until the text fits the frame again.';
     fit.classList.toggle('is-stuck', stuck);
     fit.setAttribute('aria-disabled', stuck);
   }
   new ResizeObserver(showSize).observe(editor.el.firstElementChild);
+  editor.el.addEventListener('input', showSize); // typing can change what Fit has to offer
 
   const parse = (value) => (value === 'true' || value === 'false' ? value === 'true' : value);
 
@@ -124,7 +137,14 @@ export function studio(host, panel) {
      again, then rests for half of what that update cost so the browser can keep drawing the slider. */
   let queued = null;
   let pumping = false;
-  const cancel = () => (queued = null);
+
+  /** Land what a drag still owes before changing the same fields from somewhere else. */
+  function flush() {
+    if (!queued) return;
+    const run = queued;
+    queued = null;
+    run();
+  }
 
   async function pump() {
     pumping = true;
@@ -133,6 +153,7 @@ export function studio(host, panel) {
       queued = null;
       const t = performance.now();
       await run();
+      showSize();
       const rest = Math.min(200, Math.max(16, (performance.now() - t) / 2));
       await new Promise((done) => setTimeout(done, rest));
     }
@@ -140,7 +161,7 @@ export function studio(host, panel) {
   }
 
   function push(name, value, live) {
-    if (!live) cancel();
+    if (!live) flush();
     setField(name, value);
     if (name === 'scale') {
       scale = Number(value);
@@ -157,6 +178,7 @@ export function studio(host, panel) {
     }
     if (!live) {
       run();
+      showSize();
       return;
     }
     queued = run;
@@ -185,6 +207,7 @@ export function studio(host, panel) {
     if (typed(target)) return; // waits for Enter or for the box to lose focus
     drop();
     if (name === 'ratio') {
+      flush(); // a width still in flight would fight the new pairing
       const locked = pair('width', Number(form.elements.width[0].value));
       if (locked.width) editor.set(locked); // Free changes nothing on its own
       showSize();
@@ -192,6 +215,7 @@ export function studio(host, panel) {
     }
     if (target.type === 'radio') {
       editor.set({ [name]: parse(value) });
+      showSize(); // wrap and empty tubes change how many rows the text needs
       return;
     }
     push(name, value, true);
@@ -203,7 +227,7 @@ export function studio(host, panel) {
 
   /* Every changed field onto the editor at once, after the form itself was reset or put back. */
   function sync() {
-    cancel();
+    flush();
     const was = editor.el.getAttribute('style') ?? '';
     const now = editor.options;
     const patch = {};
@@ -255,13 +279,12 @@ export function studio(host, panel) {
   });
 
   fit.addEventListener('click', () => {
-    const cell = form.elements.cellH[0];
-    const value = editor.fit(Number(cell.min));
-    if (value === null || value === Number(cell.value)) return;
-    cancel();
+    if (target === null) return;
+    flush();
     drop();
-    setField('cellH', value);
-    editor.set({ cellH: value });
+    setField('cellH', target);
+    editor.set({ cellH: target });
+    showSize();
   });
 
   form.addEventListener('submit', (event) => event.preventDefault());
