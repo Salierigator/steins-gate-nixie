@@ -137,6 +137,15 @@
   gap: var(--space-2);
 }
 
+.panel-field.ratio {
+  grid-template-columns: 1fr;
+}
+
+.panel-field.ratio .panel-choice {
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--space-1);
+}
+
 .panel-choice label {
   position: relative;
   padding: 0.1rem 0;
@@ -173,6 +182,7 @@
 /* Fader: a recessed slot, lit up to a ridged cap. */
 .panel input[type='range'] {
   --cap: 1.75rem;
+  --p: 0;
   width: 100%;
   height: 1.25rem;
   background: none;
@@ -184,7 +194,7 @@
   height: 0.5rem;
   background:
     repeating-linear-gradient(0deg, rgb(0 0 0 / 0.55) 0 1px, transparent 1px 3px),
-    linear-gradient(90deg, rgb(var(--crt-tint) / 0.75) calc(var(--p) * (100% - var(--cap)) + var(--cap) / 2), #120800 0);
+    linear-gradient(90deg, rgb(var(--crt-tint) / 0.75) calc(var(--p, 0) * (100% - var(--cap)) + var(--cap) / 2), #120800 0);
   border: 1px solid var(--panel-line);
   border-radius: 1px;
   box-shadow: inset 0 1px 3px #000;
@@ -196,7 +206,7 @@
   margin-top: calc(0.25rem - 1px - 1.125rem / 2);
   background:
     repeating-linear-gradient(90deg, rgb(60 25 0 / 0.8) 0 1px, rgb(255 240 200 / 0.5) 1px 2px, transparent 2px 4px) center / 15px 50% no-repeat,
-    linear-gradient(#ffc45c, #e07f00);
+    linear-gradient(#ffc45c, #e07f00) #e8920a;
   border: 1px solid #3d1c00;
   border-radius: 2px;
   box-shadow:
@@ -225,7 +235,7 @@
   height: 1.125rem;
   background:
     repeating-linear-gradient(90deg, rgb(60 25 0 / 0.8) 0 1px, rgb(255 240 200 / 0.5) 1px 2px, transparent 2px 4px) center / 15px 50% no-repeat,
-    linear-gradient(#ffc45c, #e07f00);
+    linear-gradient(#ffc45c, #e07f00) #e8920a;
   border: 1px solid #3d1c00;
   border-radius: 2px;
   box-shadow: inset 0 1px 0 rgb(255 240 200 / 0.6), 0 2px 3px #000, 0 0 8px var(--crt-halo);
