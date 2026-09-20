@@ -52,6 +52,7 @@ export function studio(host, panel) {
   const tokens = getComputedStyle(editor.el);
   const options = editor.options;
   const inputs = form.querySelectorAll('input');
+  const deep = [...form.querySelectorAll('.panel-advanced input')]; // the only fields Reset touches
   const ranges = form.querySelectorAll('[type="range"]');
   const base = {}; // token values from the stylesheet: what an empty style attribute renders
   for (const input of inputs) {
@@ -197,7 +198,7 @@ export function studio(host, panel) {
     }
     if (!input.validity.valid) input.value = twin.value;
     else if (input.value !== twin.value) {
-      drop();
+      if (deep.includes(input)) drop();
       push(input.name, input.value, false);
     }
   }
@@ -207,7 +208,7 @@ export function studio(host, panel) {
   form.addEventListener('input', ({ target }) => {
     const { name, value } = target;
     if (typed(target)) return; // waits for Enter or for the box to lose focus
-    drop();
+    if (deep.includes(target)) drop();
     if (name === 'ratio') {
       flush(); // a width still in flight would fight the new pairing
       const locked = pair('width', Number(form.elements.width[0].value));
@@ -248,6 +249,7 @@ export function studio(host, panel) {
     ranges.forEach(paint);
     if (Object.keys(patch).length > 0 || (editor.el.getAttribute('style') ?? '') !== was) editor.set(patch);
     showSize();
+    tidy();
   }
 
   /* Picking a character makes its colors the frame's defaults, so Reset comes back to them. */
@@ -261,44 +263,45 @@ export function studio(host, panel) {
     sync();
   }
 
-  /* One button: Reset, then Undo until the next edit. */
+  /* One button over the Advanced fields only: Reset, then Undo until the next edit. The fields
+     outside it are the frame itself and the export size, which are choices rather than defaults. */
   let undone = null;
+  const kept = (input) => (input.type === 'radio' ? input.checked : input.value);
+  const fresh = (input) => (input.type === 'radio' ? input.checked === input.defaultChecked : input.value === input.defaultValue);
+
+  function tidy() {
+    reset.textContent = undone ? 'Undo' : 'Reset';
+    reset.disabled = !undone && deep.every(fresh);
+  }
+
   function drop() {
     if (!undone) return;
     undone = null;
-    reset.textContent = 'Reset';
+    tidy();
   }
 
   reset.addEventListener('click', () => {
-    const keep = { scale: form.elements.scale.value }; // export size is a download setting, not a frame setting
-    const ratio = form.elements.ratio.value;
-    if (ratio) {
-      keep.width = form.elements.width[0].value; // a locked frame is a choice, not a default
-      keep.height = form.elements.height[0].value;
-    }
     const back = undone;
-    undone = back ? null : [...inputs].map((input) => (input.type === 'radio' ? input.checked : input.value));
-    if (back) {
-      inputs.forEach((input, i) => {
-        if (input.type === 'radio') input.checked = back[i];
-        else if (input.value !== back[i]) input.value = back[i];
-      });
-    }
-    else form.reset();
-    for (const [name, value] of Object.entries(keep)) setField(name, value);
-    form.querySelector(`[name="ratio"][value="${ratio}"]`).checked = true;
+    undone = back ? null : deep.map(kept);
+    deep.forEach((input, i) => {
+      const value = back ? back[i] : input.type === 'radio' ? input.defaultChecked : input.defaultValue;
+      if (input.type === 'radio') input.checked = value;
+      else if (input.value !== value) input.value = value;
+    });
     sync();
-    reset.textContent = undone ? 'Undo' : 'Reset';
   });
 
   fit.addEventListener('click', () => {
     if (target === null) return;
     flush();
-    drop();
     setField('cellH', target);
     editor.set({ cellH: target });
     showSize();
   });
+
+  form.addEventListener('input', tidy);
+  form.addEventListener('change', tidy);
+  tidy();
 
   form.addEventListener('submit', (event) => event.preventDefault());
 

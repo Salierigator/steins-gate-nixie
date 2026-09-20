@@ -334,8 +334,18 @@
   cursor: pointer;
 }
 
-.panel-reset:hover {
+/* Dim while there is nothing to put back, full strength once there is, brighter under the pointer. */
+.panel-reset:enabled {
   opacity: 1;
+}
+
+.panel-reset:disabled {
+  cursor: default;
+}
+
+.panel-reset:enabled:hover {
+  color: var(--crt-core);
+  text-shadow: 0 0 10px rgb(var(--crt-tint) / 0.8);
 }
 
 .panel-advanced summary {

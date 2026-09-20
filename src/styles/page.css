@@ -30,7 +30,7 @@
 }
 
 .slogan {
-  margin-top: var(--space-6);
+  margin-top: calc(var(--space-6) * 2 / 3);
   font-size: clamp(0.8rem, 2.8vw, 1.05rem);
   line-height: 1.45;
   letter-spacing: 0.015em;
@@ -119,4 +119,20 @@
   margin-top: var(--space-6);
   --nixie-h: clamp(2.6rem, 13vw, var(--nixie-h-lg));
   --nixie-grid-level: 1;
+}
+
+/* The wheels need 298px beside a 45px button, so under 24rem the row runs out of width and the
+   button drops below them. Above it nothing changes. */
+@media (max-width: 24rem) {
+  .picker-row {
+    grid-template-columns: 1fr;
+    row-gap: var(--space-3);
+  }
+
+  /* The button is first in the markup, so it needs reordering to land under the wheels. */
+  .upa {
+    order: 1;
+    justify-self: center;
+    translate: 0 0;
+  }
 }
