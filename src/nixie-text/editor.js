@@ -40,6 +40,7 @@ const DEFAULTS = {
   flickerMs: 350, // longest blink
   flickerDepth: 0.9,
 };
+const STEP = 0.5; // cell heights `fit` may pick, counted from its `min`
 const LAYOUT = new Set(['cols', 'width', 'height', 'gap', 'wrap', 'fill']);
 const FLICKER = new Set(['flicker', 'flickerRate', 'flickerMs', 'flickerDepth']);
 
@@ -149,14 +150,18 @@ export function textEditor(host, options) {
       return h !== null && h > frameH();
     },
 
-    /** Largest cell height, no larger than now, whose text still fits the frame; null if none does. */
+    /** Largest cell height on the `min` grid, no larger than now, whose text still fits the frame; null if none does. */
     fit(min = 1) {
       if (measure() === null) return null;
       const limit = frameH();
-      for (let cellH = view.opts.cellH; cellH >= min; cellH -= 0.5) {
-        if (measure(cellH) <= limit) return cellH;
+      let lo = -1; // steps above `min`, all of which fit; -1 once `min` itself is too tall
+      let hi = Math.floor((view.opts.cellH - min) / STEP) + 1;
+      while (hi - lo > 1) {
+        const mid = Math.floor((lo + hi) / 2);
+        if (measure(min + mid * STEP) <= limit) lo = mid;
+        else hi = mid;
       }
-      return null;
+      return lo < 0 ? null : min + lo * STEP;
     },
 
     pngSize: (scale) => pngSize(view, scale),

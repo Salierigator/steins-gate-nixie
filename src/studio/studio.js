@@ -256,7 +256,7 @@ export function studio(host, panel) {
 
   fit.addEventListener('click', () => {
     const cell = form.elements.cellH[0];
-    const value = stuck ? null : editor.fit(Number(cell.min));
+    const value = editor.fit(Number(cell.min));
     if (value === null || value === Number(cell.value)) return;
     cancel();
     drop();
