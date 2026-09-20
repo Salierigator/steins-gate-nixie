@@ -53,11 +53,14 @@ export function studio(host, panel) {
   }
   new ResizeObserver(showSize).observe(editor.el.firstElementChild);
 
+  const parse = (value) => (value === 'true' || value === 'false' ? value === 'true' : value);
+
   form.addEventListener('input', ({ target }) => {
     const { name, value } = target;
+    drop();
     if (!target.validity.valid) return; // a half-typed number or hex
     if (target.type === 'radio') {
-      editor.set({ [name]: value === 'true' || value === 'false' ? value === 'true' : value });
+      editor.set({ [name]: parse(value) });
       return;
     }
     for (const twin of form.querySelectorAll(`[name="${name}"]`)) {
@@ -79,14 +82,39 @@ export function studio(host, panel) {
     if (!target.validity.valid) target.value = [...form.elements[target.name]].find((twin) => twin !== target).value;
   });
 
-  const initial = editor.options;
-  reset.addEventListener('click', () => {
-    form.reset();
-    ranges.forEach(paint);
+  /* Every field onto the editor at once, after the form itself was reset or put back. */
+  function sync() {
+    const patch = {};
     editor.el.removeAttribute('style');
-    editor.set(initial);
+    for (const input of inputs) {
+      const { name } = input;
+      if (!name || name === 'scale') continue;
+      if (name.startsWith('--')) {
+        if (input.value !== input.defaultValue) editor.el.style.setProperty(name, input.value);
+      } else if (input.type !== 'radio') patch[name] = Number(input.value);
+      else if (input.checked) patch[name] = parse(input.value);
+    }
     scale = Number(form.elements.scale.value);
+    ranges.forEach(paint);
+    editor.set(patch);
     showSize();
+  }
+
+  /* One button: Reset, then Undo until the next edit. */
+  let undone = null;
+  function drop() {
+    if (!undone) return;
+    undone = null;
+    reset.textContent = 'Reset';
+  }
+
+  reset.addEventListener('click', () => {
+    const back = undone;
+    undone = back ? null : [...inputs].map((input) => (input.type === 'radio' ? input.checked : input.value));
+    if (back) inputs.forEach((input, i) => (input.type === 'radio' ? (input.checked = back[i]) : (input.value = back[i])));
+    else form.reset();
+    sync();
+    reset.textContent = undone ? 'Undo' : 'Reset';
   });
 
   form.addEventListener('submit', (event) => event.preventDefault());
