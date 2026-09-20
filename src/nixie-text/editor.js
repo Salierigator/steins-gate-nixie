@@ -3,7 +3,7 @@
  *
  *   const editor = textEditor(host, { cellH: 60, cols: 16 });
  *   editor.value = 'El Psy Kongroo.';
- *   editor.set({ cols: 24 }); // layout options re-blit, anything else rebuilds the atlas
+ *   await editor.set({ cols: 24 }); // layout options re-blit, anything else rebuilds the atlas
  *   editor.set({ width: 800, height: 400 }); // frame in px: columns follow, rows fill it, the grid is centered
  *   editor.set();             // rebuild after changing --nixie-* tokens
  *   editor.over();            // does the text make the frame taller than `height`?
@@ -64,23 +64,25 @@ export function textEditor(host, options) {
   const draw = renderer(view, fx);
   bindInput(view, draw);
 
-  let building = false;
+  let job = null;
   let stale = false;
 
-  async function build() {
-    if (building) {
+  function build() {
+    if (job) {
       stale = true; // finish this build, then run once more
-      return;
+      return job;
     }
-    building = true;
-    do {
-      stale = false;
-      view.atlas = await buildAtlas(view.G, view.opts, readStyle(el));
-      view.dirty = true;
-      draw.reset();
-      draw.render();
-    } while (stale);
-    building = false;
+    job = (async () => {
+      do {
+        stale = false;
+        view.atlas = await buildAtlas(view.G, view.opts, readStyle(el));
+        view.dirty = true;
+        draw.reset();
+        draw.render();
+      } while (stale);
+      job = null;
+    })();
+    return job;
   }
 
   const dp = () => window.devicePixelRatio || 1;
@@ -129,6 +131,7 @@ export function textEditor(host, options) {
       view.dirty = true;
       draw.schedule();
     },
+    /** Resolves once the change is on screen, so a caller can pace a drag by what it really costs. */
     set(patch = {}) {
       Object.assign(view.opts, patch);
       const keys = Object.keys(patch);
@@ -136,9 +139,9 @@ export function textEditor(host, options) {
       if (keys.length > 0 && keys.every((key) => LAYOUT.has(key) || FLICKER.has(key))) {
         view.dirty = true;
         draw.schedule();
-      } else if (view.G) {
-        build();
+        return new Promise((done) => requestAnimationFrame(() => done()));
       }
+      return view.G ? build() : Promise.resolve();
     },
     /** Is the text taller than the frame? */
     over() {

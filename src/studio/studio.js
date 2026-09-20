@@ -100,7 +100,7 @@ export function studio(host, panel) {
 
   function setField(name, value) {
     for (const twin of form.querySelectorAll(`[name="${name}"]`)) {
-      twin.value = value;
+      if (twin.value !== String(value)) twin.value = value;
       if (twin.type === 'range') paint(twin);
     }
   }
@@ -120,10 +120,70 @@ export function studio(host, panel) {
     return { width, height };
   }
 
+  /* A drag repaints the fields at once, but the editor only gets the newest value once it is free
+     again, then rests for half of what that update cost so the browser can keep drawing the slider. */
+  let queued = null;
+  let pumping = false;
+  const cancel = () => (queued = null);
+
+  async function pump() {
+    pumping = true;
+    while (queued) {
+      const run = queued;
+      queued = null;
+      const t = performance.now();
+      await run();
+      const rest = Math.min(200, Math.max(16, (performance.now() - t) / 2));
+      await new Promise((done) => setTimeout(done, rest));
+    }
+    pumping = false;
+  }
+
+  function push(name, value, live) {
+    if (!live) cancel();
+    setField(name, value);
+    if (name === 'scale') {
+      scale = Number(value);
+      showSize();
+      return;
+    }
+    let run;
+    if (name.startsWith('--')) {
+      editor.el.style.setProperty(name, value);
+      run = () => editor.set();
+    } else {
+      const patch = { [name]: Number(value), ...pair(name, Number(value)) };
+      run = () => editor.set(patch);
+    }
+    if (!live) {
+      run();
+      return;
+    }
+    queued = run;
+    if (!pumping) pump();
+  }
+
+  /** Enter or leaving a typed box: a stray decimal snaps to the step, anything unusable goes back. */
+  function commit(input) {
+    const twin = [...form.elements[input.name]].find((other) => other !== input);
+    if (input.type === 'number' && input.value) {
+      const step = Number(input.step) || 1;
+      const base = Number(input.min) || 0;
+      input.value = Number((Math.round((Number(input.value) - base) / step) * step + base).toFixed(6));
+    }
+    if (!input.validity.valid) input.value = twin.value;
+    else if (input.value !== twin.value) {
+      drop();
+      push(input.name, input.value, false);
+    }
+  }
+
+  const typed = (input) => input.type === 'number' || input.type === 'text';
+
   form.addEventListener('input', ({ target }) => {
     const { name, value } = target;
+    if (typed(target)) return; // waits for Enter or for the box to lose focus
     drop();
-    if (!target.validity.valid) return; // a half-typed number or hex
     if (name === 'ratio') {
       const locked = pair('width', Number(form.elements.width[0].value));
       if (locked.width) editor.set(locked); // Free changes nothing on its own
@@ -134,24 +194,16 @@ export function studio(host, panel) {
       editor.set({ [name]: parse(value) });
       return;
     }
-    setField(name, value);
-    if (name === 'scale') {
-      scale = Number(value);
-      showSize();
-    } else if (name.startsWith('--')) {
-      editor.el.style.setProperty(name, value);
-      editor.set();
-    } else {
-      editor.set({ [name]: Number(value), ...pair(name, Number(value)) });
-    }
+    push(name, value, true);
   });
 
   form.addEventListener('change', ({ target }) => {
-    if (!target.validity.valid) target.value = [...form.elements[target.name]].find((twin) => twin !== target).value;
+    if (typed(target)) commit(target);
   });
 
   /* Every changed field onto the editor at once, after the form itself was reset or put back. */
   function sync() {
+    cancel();
     const was = editor.el.getAttribute('style') ?? '';
     const now = editor.options;
     const patch = {};
@@ -181,7 +233,12 @@ export function studio(host, panel) {
   }
 
   reset.addEventListener('click', () => {
-    const png = form.elements.scale.value; // export size is a download setting, not a frame setting
+    const keep = { scale: form.elements.scale.value }; // export size is a download setting, not a frame setting
+    const ratio = form.elements.ratio.value;
+    if (ratio) {
+      keep.width = form.elements.width[0].value; // a locked frame is a choice, not a default
+      keep.height = form.elements.height[0].value;
+    }
     const back = undone;
     undone = back ? null : [...inputs].map((input) => (input.type === 'radio' ? input.checked : input.value));
     if (back) {
@@ -191,7 +248,8 @@ export function studio(host, panel) {
       });
     }
     else form.reset();
-    form.elements.scale.value = png;
+    for (const [name, value] of Object.entries(keep)) setField(name, value);
+    form.querySelector(`[name="ratio"][value="${ratio}"]`).checked = true;
     sync();
     reset.textContent = undone ? 'Undo' : 'Reset';
   });
@@ -200,6 +258,7 @@ export function studio(host, panel) {
     const cell = form.elements.cellH[0];
     const value = stuck ? null : editor.fit(Number(cell.min));
     if (value === null || value === Number(cell.value)) return;
+    cancel();
     drop();
     setField('cellH', value);
     editor.set({ cellH: value });

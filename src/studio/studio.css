@@ -31,10 +31,6 @@
   text-shadow: 0 0 8px var(--crt-halo);
 }
 
-.studio-dims {
-  opacity: 0.7;
-}
-
 .studio-fit {
   padding: 0;
   background: none;
