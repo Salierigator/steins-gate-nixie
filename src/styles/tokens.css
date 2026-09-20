@@ -26,6 +26,8 @@
   --panel-bg: #0c0500;
   --panel-line: rgb(255 139 0 / 0.35);
   --panel-rule: rgb(255 139 0 / 0.14);
+  --panel-radius: 4px;
+  --panel-control: 10.5rem;
 
   --font-crt: 'VT323', ui-monospace, 'Courier New', monospace;
   --font-display: 'Chakra Petch', 'Avenir Next Condensed', system-ui, sans-serif;

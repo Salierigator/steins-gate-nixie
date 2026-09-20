@@ -54,103 +54,155 @@
       <form class="panel-form" id="panel-form">
         <div class="panel-field">
           <label for="panel-width">Width</label>
-          <input id="panel-width" name="width" type="number" min="160" max="2400" />
+          <input id="panel-width" name="width" type="number" required min="160" max="2400" />
           <input name="width" type="range" min="160" max="2400" aria-label="Width" />
         </div>
         <div class="panel-field">
           <label for="panel-height">Height</label>
-          <input id="panel-height" name="height" type="number" min="60" max="4000" />
+          <input id="panel-height" name="height" type="number" required min="60" max="4000" />
           <input name="height" type="range" min="60" max="4000" aria-label="Height" />
         </div>
         <div class="panel-field">
           <label for="panel-cell">Text size</label>
-          <input id="panel-cell" name="cellH" type="number" min="16" max="160" />
+          <input id="panel-cell" name="cellH" type="number" required min="16" max="160" />
           <input name="cellH" type="range" min="16" max="160" aria-label="Text size" />
         </div>
-        <label class="panel-check"><input name="fill" type="checkbox" /> Empty tubes</label>
+        <div class="panel-field">
+          <span id="panel-fill">Empty tubes</span>
+          <div class="panel-choice" role="radiogroup" aria-labelledby="panel-fill">
+            <label><input name="fill" type="radio" value="true" />On</label>
+            <label><input name="fill" type="radio" value="false" />Off</label>
+          </div>
+        </div>
+        <div class="panel-field">
+          <span id="panel-flicker">Flicker</span>
+          <div class="panel-choice" role="radiogroup" aria-labelledby="panel-flicker">
+            <label><input name="flicker" type="radio" value="true" />On</label>
+            <label><input name="flicker" type="radio" value="false" />Off</label>
+          </div>
+        </div>
         <div class="panel-field wide">
           <label for="panel-scale">PNG</label>
           <output for="panel-scale"></output>
           <input id="panel-scale" name="scale" type="range" min="1" max="4" step="0.5" />
         </div>
         <button class="panel-save" type="button">Save PNG</button>
-        <details class="panel-advanced">
-          <summary>Advanced</summary>
-          <fieldset class="panel-group">
-            <legend>Layout</legend>
-            <div class="panel-field">
-              <label for="panel-gap">Line gap</label>
-              <input id="panel-gap" name="gap" type="number" min="0" max="40" />
-              <input name="gap" type="range" min="0" max="40" aria-label="Line gap" />
-            </div>
-            <div class="panel-field">
-              <label for="panel-wrap">Wrap</label>
-              <select id="panel-wrap" name="wrap"><option value="word">Word</option><option value="char">Char</option></select>
-            </div>
-          </fieldset>
-          <fieldset class="panel-group">
-            <legend>Colors</legend>
-            <div class="panel-field">
-              <label for="panel-lit">Lit</label>
-              <input id="panel-lit" name="--nixie-lit" type="color" />
-            </div>
-            <div class="panel-field">
-              <label for="panel-glow">Glow</label>
-              <input id="panel-glow" name="--nixie-glow" type="color" />
-            </div>
-            <div class="panel-field">
-              <label for="panel-sil">Silhouette</label>
-              <input id="panel-sil" name="--nixie-silhouette" type="color" />
-            </div>
-            <div class="panel-field">
-              <label for="panel-grid">Grid</label>
-              <input id="panel-grid" name="--nixie-grid" type="color" />
-            </div>
-          </fieldset>
-          <fieldset class="panel-group">
-            <legend>Glow</legend>
-            <div class="panel-field">
-              <label for="panel-op-glow">Opacity</label>
-              <input id="panel-op-glow" name="--nixie-op-glow" type="number" min="0" max="1" step="0.01" />
-              <input name="--nixie-op-glow" type="range" min="0" max="1" step="0.01" aria-label="Glow opacity" />
-            </div>
-            <div class="panel-field">
-              <label for="panel-sigma">Radius</label>
-              <input id="panel-sigma" name="sigma" type="number" min="1" max="120" step="0.1" />
-              <input name="sigma" type="range" min="1" max="120" step="0.1" aria-label="Radius" />
-            </div>
-            <div class="panel-field">
-              <label for="panel-gain">Gain</label>
-              <input id="panel-gain" name="gain" type="number" min="0.5" max="8" step="0.01" />
-              <input name="gain" type="range" min="0.5" max="8" step="0.01" aria-label="Gain" />
-            </div>
-          </fieldset>
-          <fieldset class="panel-group">
-            <legend>Silhouette</legend>
-            <div class="panel-field">
-              <label for="panel-op-sil">Opacity</label>
-              <input id="panel-op-sil" name="--nixie-op-silhouette" type="number" min="0" max="1" step="0.01" />
-              <input name="--nixie-op-silhouette" type="range" min="0" max="1" step="0.01" aria-label="Silhouette opacity" />
-            </div>
-            <div class="panel-field">
-              <label for="panel-sil-mode">Shape</label>
-              <select id="panel-sil-mode" name="silMode"><option value="char">Per char</option><option value="digit">Fixed</option></select>
-            </div>
-          </fieldset>
-          <fieldset class="panel-group">
-            <legend>Grid</legend>
-            <div class="panel-field">
-              <label for="panel-op-grid">Opacity</label>
-              <input id="panel-op-grid" name="--nixie-op-grid" type="number" min="0" max="1" step="0.01" />
-              <input name="--nixie-op-grid" type="range" min="0" max="1" step="0.01" aria-label="Grid opacity" />
-            </div>
-            <div class="panel-field">
-              <label for="panel-grid-w">Stroke</label>
-              <input id="panel-grid-w" name="gridW" type="number" min="0" max="8" step="0.1" />
-              <input name="gridW" type="range" min="0" max="8" step="0.1" aria-label="Stroke" />
-            </div>
-          </fieldset>
-        </details>
+        <div class="panel-more">
+          <details class="panel-advanced">
+            <summary>Advanced</summary>
+            <fieldset class="panel-group">
+              <legend>Layout</legend>
+              <div class="panel-field">
+                <label for="panel-gap">Line gap</label>
+                <input id="panel-gap" name="gap" type="number" required min="0" max="40" />
+                <input name="gap" type="range" min="0" max="40" aria-label="Line gap" />
+              </div>
+              <div class="panel-field">
+                <span id="panel-wrap">Wrap</span>
+                <div class="panel-choice" role="radiogroup" aria-labelledby="panel-wrap">
+                  <label><input name="wrap" type="radio" value="word" />Word</label>
+                  <label><input name="wrap" type="radio" value="char" />Char</label>
+                </div>
+              </div>
+            </fieldset>
+            <fieldset class="panel-group">
+              <legend>Colors</legend>
+              <div class="panel-field">
+                <label for="panel-lit">Lit</label>
+                <div class="panel-color">
+                  <input name="--nixie-lit" type="color" aria-label="Lit" />
+                  <input id="panel-lit" name="--nixie-lit" type="text" required pattern="#[0-9a-fA-F]{6}" maxlength="7" spellcheck="false" />
+                </div>
+              </div>
+              <div class="panel-field">
+                <label for="panel-glow">Glow</label>
+                <div class="panel-color">
+                  <input name="--nixie-glow" type="color" aria-label="Glow" />
+                  <input id="panel-glow" name="--nixie-glow" type="text" required pattern="#[0-9a-fA-F]{6}" maxlength="7" spellcheck="false" />
+                </div>
+              </div>
+              <div class="panel-field">
+                <label for="panel-sil">Silhouette</label>
+                <div class="panel-color">
+                  <input name="--nixie-silhouette" type="color" aria-label="Silhouette" />
+                  <input id="panel-sil" name="--nixie-silhouette" type="text" required pattern="#[0-9a-fA-F]{6}" maxlength="7" spellcheck="false" />
+                </div>
+              </div>
+              <div class="panel-field">
+                <label for="panel-grid">Grid</label>
+                <div class="panel-color">
+                  <input name="--nixie-grid" type="color" aria-label="Grid" />
+                  <input id="panel-grid" name="--nixie-grid" type="text" required pattern="#[0-9a-fA-F]{6}" maxlength="7" spellcheck="false" />
+                </div>
+              </div>
+            </fieldset>
+            <fieldset class="panel-group">
+              <legend>Glow</legend>
+              <div class="panel-field">
+                <label for="panel-op-glow">Opacity</label>
+                <input id="panel-op-glow" name="--nixie-op-glow" type="number" required min="0" max="1" step="0.01" />
+                <input name="--nixie-op-glow" type="range" min="0" max="1" step="0.01" aria-label="Glow opacity" />
+              </div>
+              <div class="panel-field">
+                <label for="panel-sigma">Radius</label>
+                <input id="panel-sigma" name="sigma" type="number" required min="1" max="120" step="0.1" />
+                <input name="sigma" type="range" min="1" max="120" step="0.1" aria-label="Radius" />
+              </div>
+              <div class="panel-field">
+                <label for="panel-gain">Gain</label>
+                <input id="panel-gain" name="gain" type="number" required min="0.5" max="8" step="0.01" />
+                <input name="gain" type="range" min="0.5" max="8" step="0.01" aria-label="Gain" />
+              </div>
+            </fieldset>
+            <fieldset class="panel-group">
+              <legend>Silhouette</legend>
+              <div class="panel-field">
+                <label for="panel-op-sil">Opacity</label>
+                <input id="panel-op-sil" name="--nixie-op-silhouette" type="number" required min="0" max="1" step="0.01" />
+                <input name="--nixie-op-silhouette" type="range" min="0" max="1" step="0.01" aria-label="Silhouette opacity" />
+              </div>
+              <div class="panel-field">
+                <span id="panel-sil-mode">Shape</span>
+                <div class="panel-choice" role="radiogroup" aria-labelledby="panel-sil-mode">
+                  <label><input name="silMode" type="radio" value="char" />Per char</label>
+                  <label><input name="silMode" type="radio" value="digit" />Fixed</label>
+                </div>
+              </div>
+            </fieldset>
+            <fieldset class="panel-group">
+              <legend>Grid</legend>
+              <div class="panel-field">
+                <label for="panel-op-grid">Opacity</label>
+                <input id="panel-op-grid" name="--nixie-op-grid" type="number" required min="0" max="1" step="0.01" />
+                <input name="--nixie-op-grid" type="range" min="0" max="1" step="0.01" aria-label="Grid opacity" />
+              </div>
+              <div class="panel-field">
+                <label for="panel-grid-w">Stroke</label>
+                <input id="panel-grid-w" name="gridW" type="number" required min="0" max="8" step="0.1" />
+                <input name="gridW" type="range" min="0" max="8" step="0.1" aria-label="Stroke" />
+              </div>
+            </fieldset>
+            <fieldset class="panel-group">
+              <legend>Flicker</legend>
+              <div class="panel-field">
+                <label for="panel-flicker-rate">Rate /min</label>
+                <input id="panel-flicker-rate" name="flickerRate" type="number" required min="0.1" max="30" step="0.1" />
+                <input name="flickerRate" type="range" min="0.1" max="30" step="0.1" aria-label="Rate" />
+              </div>
+              <div class="panel-field">
+                <label for="panel-flicker-ms">Length ms</label>
+                <input id="panel-flicker-ms" name="flickerMs" type="number" required min="60" max="2000" step="10" />
+                <input name="flickerMs" type="range" min="60" max="2000" step="10" aria-label="Length" />
+              </div>
+              <div class="panel-field">
+                <label for="panel-flicker-depth">Depth</label>
+                <input id="panel-flicker-depth" name="flickerDepth" type="number" required min="0" max="1" step="0.01" />
+                <input name="flickerDepth" type="range" min="0" max="1" step="0.01" aria-label="Depth" />
+              </div>
+            </fieldset>
+          </details>
+          <button class="panel-reset" type="button">Reset</button>
+        </div>
       </form>
     </aside>
 

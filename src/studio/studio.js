@@ -15,6 +15,7 @@ export function studio(host, panel) {
   const toggle = panel.querySelector('.panel-toggle');
   const size = form.querySelector('output');
   const save = form.querySelector('.panel-save');
+  const reset = form.querySelector('.panel-reset');
   const phone = matchMedia('(max-width: 40rem)').matches;
 
   const opts = {
@@ -29,13 +30,22 @@ export function studio(host, panel) {
 
   const tokens = getComputedStyle(editor.el);
   const options = editor.options;
-  for (const input of form.elements) {
+  const inputs = form.querySelectorAll('input');
+  const ranges = form.querySelectorAll('[type="range"]');
+  for (const input of inputs) {
     const { name } = input;
     if (name.startsWith('--')) input.value = tokens.getPropertyValue(name).trim();
-    else if (input.type === 'checkbox') input.checked = options[name];
+    else if (input.type === 'radio') input.checked = input.value === String(options[name]);
     else if (name in options) input.value = options[name];
   }
   form.elements.scale.value = scale;
+  for (const input of inputs) {
+    if (input.type === 'radio') input.defaultChecked = input.checked;
+    else input.defaultValue = input.value;
+  }
+
+  const paint = (range) => range.style.setProperty('--p', (range.value - range.min) / (range.max - range.min));
+  ranges.forEach(paint);
 
   function showSize() {
     const [w, h] = editor.pngSize(scale);
@@ -44,24 +54,39 @@ export function studio(host, panel) {
   new ResizeObserver(showSize).observe(editor.el.firstElementChild);
 
   form.addEventListener('input', ({ target }) => {
-    const { name } = target;
-    if (!target.validity.valid) return; // a half-typed number
+    const { name, value } = target;
+    if (!target.validity.valid) return; // a half-typed number or hex
+    if (target.type === 'radio') {
+      editor.set({ [name]: value === 'true' || value === 'false' ? value === 'true' : value });
+      return;
+    }
+    for (const twin of form.querySelectorAll(`[name="${name}"]`)) {
+      twin.value = value;
+      if (twin.type === 'range') paint(twin);
+    }
     if (name === 'scale') {
-      scale = Number(target.value);
+      scale = Number(value);
       showSize();
-      return;
-    }
-    if (target.type === 'checkbox') {
-      editor.set({ [name]: target.checked });
-      return;
-    }
-    for (const twin of form.querySelectorAll(`[name="${name}"]`)) twin.value = target.value;
-    if (name.startsWith('--')) {
-      editor.el.style.setProperty(name, target.value);
+    } else if (name.startsWith('--')) {
+      editor.el.style.setProperty(name, value);
       editor.set();
     } else {
-      editor.set({ [name]: target.tagName === 'SELECT' ? target.value : Number(target.value) });
+      editor.set({ [name]: Number(value) });
     }
+  });
+
+  form.addEventListener('change', ({ target }) => {
+    if (!target.validity.valid) target.value = [...form.elements[target.name]].find((twin) => twin !== target).value;
+  });
+
+  const initial = editor.options;
+  reset.addEventListener('click', () => {
+    form.reset();
+    ranges.forEach(paint);
+    editor.el.removeAttribute('style');
+    editor.set(initial);
+    scale = Number(form.elements.scale.value);
+    showSize();
   });
 
   form.addEventListener('submit', (event) => event.preventDefault());

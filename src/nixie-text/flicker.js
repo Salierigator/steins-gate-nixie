@@ -9,7 +9,7 @@ export function flicker(view, redrawCell) {
 
   function schedule() {
     clearTimeout(timer);
-    if (lit.length === 0) return;
+    if (lit.length === 0 || !view.opts.flicker) return;
     timer = setTimeout(() => {
       if (!view.el.isConnected) {
         lit = []; // resumes on the next render
@@ -17,13 +17,14 @@ export function flicker(view, redrawCell) {
       }
       start();
       schedule();
-    }, delay(lit.length));
+    }, delay(lit.length, view.opts.flickerRate));
   }
 
   function start() {
     const key = lit[Math.floor(Math.random() * lit.length)];
     if (blinks.has(key)) return;
-    blinks.set(key, { r: key >> 16, i: key & 65535, ...blink(), t0: performance.now(), k: 1 });
+    const { flickerMs, flickerDepth } = view.opts;
+    blinks.set(key, { r: key >> 16, i: key & 65535, ...blink(flickerMs, 1 - flickerDepth), t0: performance.now(), k: 1 });
     ticking ||= requestAnimationFrame(tick);
   }
 
@@ -47,6 +48,12 @@ export function flicker(view, redrawCell) {
     if (blinks.size) ticking = requestAnimationFrame(tick);
   }
 
+  function end() {
+    const done = [...blinks.values()];
+    blinks.clear();
+    if (view.cur) for (const b of done) redrawCell(b.r, b.i);
+  }
+
   return {
     level: (r, i) => blinks.get(r * 65536 + i)?.k ?? 1,
 
@@ -63,10 +70,11 @@ export function flicker(view, redrawCell) {
     },
 
     /** Before a relayout, while the old layout still says where the cells are. */
-    end() {
-      const done = [...blinks.values()];
-      blinks.clear();
-      if (view.cur) for (const b of done) redrawCell(b.r, b.i);
+    end,
+
+    restart() {
+      end();
+      schedule();
     },
   };
 }

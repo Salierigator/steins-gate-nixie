@@ -32,8 +32,13 @@ const DEFAULTS = {
   gain: 3.43,
   gridW: 0, // grid stroke, font units
   silMode: 'char', // cathode shadow: 'char' | 'digit'
+  flicker: true,
+  flickerRate: 1, // blinks per minute per lit character
+  flickerMs: 350, // longest blink
+  flickerDepth: 0.9,
 };
 const LAYOUT = new Set(['cols', 'width', 'height', 'gap', 'wrap', 'fill']);
+const FLICKER = new Set(['flicker', 'flickerRate', 'flickerMs', 'flickerDepth']);
 
 export function textEditor(host, options) {
   const el = document.createElement('div');
@@ -108,7 +113,8 @@ export function textEditor(host, options) {
     set(patch = {}) {
       Object.assign(view.opts, patch);
       const keys = Object.keys(patch);
-      if (keys.length > 0 && keys.every((key) => LAYOUT.has(key))) {
+      if (keys.some((key) => FLICKER.has(key))) fx.restart();
+      if (keys.length > 0 && keys.every((key) => LAYOUT.has(key) || FLICKER.has(key))) {
         view.dirty = true;
         draw.schedule();
       } else if (view.G) {
