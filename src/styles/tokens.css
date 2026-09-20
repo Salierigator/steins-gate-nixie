@@ -17,6 +17,7 @@
   --crt-core: #ffe7a0;
   --crt-halo: rgb(255 139 0 / 0.30);
   --crt-deep: rgb(255 100 0 / 0.15);
+  --crt-warn: #ff4526;
   --crt-tint: 255 139 0;
   --crt-bg-inner: #150901;
   --crt-bg-outer: #050200;

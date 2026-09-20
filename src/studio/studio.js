@@ -28,8 +28,26 @@ export function studio(host, panel) {
     fill: true,
   };
   let scale = 2;
-  const editor = textEditor(host, opts);
+  const frame = document.createElement('div');
+  frame.className = 'studio-frame';
+  host.append(frame);
+  const editor = textEditor(frame, opts);
   editor.value = 'El Psy Kongroo.';
+
+  const note = document.createElement('div');
+  note.className = 'studio-note';
+  const dims = document.createElement('span');
+  dims.className = 'studio-dims';
+  const over = document.createElement('span');
+  over.className = 'studio-over';
+  over.hidden = true;
+  const warn = document.createElement('span');
+  const fit = document.createElement('button');
+  fit.type = 'button';
+  fit.className = 'studio-fit';
+  over.append(warn, fit);
+  note.append(dims, over);
+  frame.append(note);
 
   const tokens = getComputedStyle(editor.el);
   const options = editor.options;
@@ -55,9 +73,26 @@ export function studio(host, panel) {
   };
   ranges.forEach(paint);
 
+  let stuck = false; // the smallest text size still does not fit
+
   function showSize() {
     const [w, h] = editor.pngSize(scale);
     size.value = `${scale}× · ${w}×${h}`;
+    const [fw, fh] = editor.pngSize(1);
+    dims.textContent = `${fw} × ${fh} px`;
+
+    const ratio = form.elements.ratio.value;
+    over.hidden = !(ratio && editor.over());
+    if (over.hidden) return;
+    warn.textContent = `! Over ${ratio} : `;
+    warn.title = `The text makes the frame taller than ${ratio}, so the PNG will not keep that shape.`;
+    stuck = editor.fit(Number(form.elements.cellH[0].min)) === null;
+    fit.textContent = stuck ? "can't fit" : '[ Fit ? ]';
+    fit.title = stuck
+      ? 'Even the smallest text size does not fit this text; make the frame bigger.'
+      : 'Lower the text size until the text fits the frame again.';
+    fit.classList.toggle('is-stuck', stuck);
+    fit.setAttribute('aria-disabled', stuck);
   }
   new ResizeObserver(showSize).observe(editor.el.firstElementChild);
 
@@ -92,6 +127,7 @@ export function studio(host, panel) {
     if (name === 'ratio') {
       const locked = pair('width', Number(form.elements.width[0].value));
       if (locked.width) editor.set(locked); // Free changes nothing on its own
+      showSize();
       return;
     }
     if (target.type === 'radio') {
@@ -158,6 +194,15 @@ export function studio(host, panel) {
     form.elements.scale.value = png;
     sync();
     reset.textContent = undone ? 'Undo' : 'Reset';
+  });
+
+  fit.addEventListener('click', () => {
+    const cell = form.elements.cellH[0];
+    const value = stuck ? null : editor.fit(Number(cell.min));
+    if (value === null || value === Number(cell.value)) return;
+    drop();
+    setField('cellH', value);
+    editor.set({ cellH: value });
   });
 
   form.addEventListener('submit', (event) => event.preventDefault());

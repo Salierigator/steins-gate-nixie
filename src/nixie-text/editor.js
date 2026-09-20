@@ -6,6 +6,8 @@
  *   editor.set({ cols: 24 }); // layout options re-blit, anything else rebuilds the atlas
  *   editor.set({ width: 800, height: 400 }); // frame in px: columns follow, rows fill it, the grid is centered
  *   editor.set();             // rebuild after changing --nixie-* tokens
+ *   editor.over();            // does the text make the frame taller than `height`?
+ *   editor.fit(8);            // largest cellH >= 8, no larger than now, whose text still fits
  *   editor.options;           // a copy of the current options
  *   editor.png(2);            // Promise<Blob> of the whole frame at 2×
  *   editor.el.addEventListener('input', ...);
@@ -15,6 +17,7 @@
 
 import { glyphs } from '../nixie/glyphs.js';
 import { buildAtlas, readStyle } from './atlas.js';
+import { layout } from './layout.js';
 import { flicker } from './flicker.js';
 import { bindInput } from './input.js';
 import { png, pngSize } from './png.js';
@@ -80,6 +83,22 @@ export function textEditor(host, options) {
     building = false;
   }
 
+  const dp = () => window.devicePixelRatio || 1;
+  const frameH = () => Math.round(view.opts.height * dp());
+
+  /** Height the rows need in device px, without building an atlas; null when there is no frame yet. */
+  function measure(cellH = view.opts.cellH) {
+    const { G, opts } = view;
+    if (!G || !opts.width || !opts.height) return null;
+    const cw = Math.max(1, Math.round((cellH * dp() * G.cw) / G.ch));
+    const s = cw / G.cw;
+    const ch = Math.round(G.ch * s);
+    const pad = Math.ceil((3 * opts.sigma + opts.gridW) * s) + 1;
+    const cols = Math.max(1, Math.floor((Math.round(opts.width * dp()) - 2 * pad) / cw));
+    const rows = layout(G, ta.value, { ...opts, cols }).rows.length;
+    return (rows - 1) * (ch + Math.round(opts.gap * dp())) + ch + 2 * pad;
+  }
+
   document.addEventListener('scroll', draw.schedule, { capture: true, passive: true }); // any scroller, not just the page
 
   let dpr = window.devicePixelRatio;
@@ -121,6 +140,22 @@ export function textEditor(host, options) {
         build();
       }
     },
+    /** Is the text taller than the frame? */
+    over() {
+      const h = measure();
+      return h !== null && h > frameH();
+    },
+
+    /** Largest cell height, no larger than now, whose text still fits the frame; null if none does. */
+    fit(min = 1) {
+      if (measure() === null) return null;
+      const limit = frameH();
+      for (let cellH = view.opts.cellH; cellH >= min; cellH -= 0.5) {
+        if (measure(cellH) <= limit) return cellH;
+      }
+      return null;
+    },
+
     pngSize: (scale) => pngSize(view, scale),
     png: (scale) => png(view, scale),
   };
