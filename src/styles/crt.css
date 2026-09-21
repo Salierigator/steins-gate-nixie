@@ -1,5 +1,3 @@
-/* Amber CRT surface: background, text glow and the rolling scan beam. */
-
 @font-face {
   font-family: 'VT323';
   font-style: normal;
@@ -33,8 +31,6 @@ body.crt::before {
     0 0 8px var(--crt-halo),
     0 0 20px var(--crt-deep);
 }
-
-/* ---------- Screen surface layers ---------- */
 
 .crt-layers {
   position: fixed;
@@ -71,7 +67,6 @@ body.crt::before {
   opacity: var(--crt-vignette);
 }
 
-/* The horizontal beam rolling down the tube. */
 .crt-beam {
   inset: auto 0 auto 0;
   height: 18vh;

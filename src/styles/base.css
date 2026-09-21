@@ -1,7 +1,5 @@
 @import './tokens.css';
 
-/* ---------- Reset ---------- */
-
 *,
 *::before,
 *::after {
@@ -36,8 +34,7 @@ select {
   color: inherit;
 }
 
-/* ---------- Background: faint lab grid ---------- */
-
+/* Faint lab grid. */
 body::before {
   content: '';
   position: fixed;

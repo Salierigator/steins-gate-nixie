@@ -1,15 +1,14 @@
 import * as Nixie from './nixie/meter.js';
 import { studio } from './studio/studio.js';
 import { picker } from './wheel/wheel.js';
-import { WORLDLINES } from './values.js';
+
+const START = 1.048596;
 
 await Nixie.mount();
 
-/* Each page renders whatever containers it has. */
 const pickerHost = document.getElementById('picker');
 const readout = document.getElementById('readout');
 
-/* Swap only the tubes whose digit changed instead of rebuilding the whole meter. */
 function readoutView(host) {
   let shown = null;
 
@@ -32,7 +31,7 @@ function readoutView(host) {
 
 if (pickerHost && readout) {
   const show = readoutView(readout);
-  const wheels = picker(WORLDLINES[0], show);
+  const wheels = picker(START, show);
   pickerHost.append(wheels.el);
   show(wheels.value());
   const upa = pickerHost.querySelector('.upa');

@@ -1,5 +1,3 @@
-/* Nixie cell + divergence meter. */
-
 .nixie {
   display: block;
   height: var(--nixie-h);
@@ -9,13 +7,12 @@
   mix-blend-mode: screen;
 }
 
-/* The four layers. fill-opacity on .glow : it must multiply into the filter input, before the alpha gain clamps. */
+/* .glow uses fill-opacity: it must multiply into the filter input, before the alpha gain clamps. */
 .nixie .sil { fill: var(--nixie-silhouette); opacity: var(--nixie-op-silhouette) }
 .nixie .glow { fill: var(--nixie-glow); fill-opacity: var(--nixie-op-glow); mix-blend-mode: screen }
 .nixie .lit { fill: var(--nixie-lit) }
 .nixie .grid { fill: var(--nixie-grid); opacity: calc(var(--nixie-op-grid) * var(--nixie-grid-level)) }
 
-/* No gap, inline-flex keeps text-align working. */
 .meter { display: inline-flex }
 
 .meter.lg { --nixie-h: var(--nixie-h-lg); --nixie-grid-level: 1 }

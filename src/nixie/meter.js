@@ -1,9 +1,6 @@
 /**
- * Nixie characters and divergence meters as DOM builders.
- *
- *   await Nixie.mount();          // once per document, before any render
- *   Nixie.meter(1.048596, 'lg');  // 8 cells
- *   Nixie.char('7');              // one cell: '0'-'9' | '.' | null (unlit tube)
+ * Nixie characters and divergence meters as DOM builders. `mount()` once per document first.
+ * `char(c)` takes '0'-'9', '.' or null for an unlit tube.
  */
 
 import { blink, delay } from './blink.js';
@@ -11,7 +8,7 @@ import { blink, delay } from './blink.js';
 const SPRITE_URL = new URL('../../assets/nixie-sprite.svg', import.meta.url);
 const NS = 'http://www.w3.org/2000/svg';
 
-/** Cell advance and Frame height in font units — read from the sprite, never retyped. */
+/** Font units, read from the sprite rather than retyped. */
 let cw = 0;
 let ch = 0;
 
@@ -36,7 +33,7 @@ function use(className, id) {
   return node;
 }
 
-/** One tube. Grid and cathode shadow always draw; `c === null` leaves the digit unlit. */
+/** Grid and cathode shadow always draw; `c === null` leaves the digit unlit. */
 export function char(c, label) {
   if (!cw) throw new Error('nixie: await mount() before char()/meter()');
   if (c !== null && !/^[0-9.]$/.test(c)) {
@@ -85,7 +82,6 @@ export function chars(value) {
   return [value < 0 ? null : digits[0], '.', ...digits.slice(2)];
 }
 
-/** Divergence meter — 8 cells. */
 export function meter(value, size = 'sm') {
   const el = document.createElement('div');
   el.className = `meter ${size}`;
@@ -95,18 +91,16 @@ export function meter(value, size = 'sm') {
   return el;
 }
 
-/* ---------- Flicker ---------- */
-
 /** Per lit cell: [stroke, halo source]. Both must dim together. */
 const cells = [];
 let running = false;
 
 function register(svg) {
   const parts = [...svg.querySelectorAll('.flick')];
-  if (parts.length === 0) return; // unlit tube, nothing to blink
+  if (parts.length === 0) return; // an unlit tube has nothing to blink
   cells.push(parts);
 
-  /* Microtask: wait until the whole render pass has registered, otherwise the first delay is drawn from a single cell (~60s). */
+  /* Wait out the render pass: a delay drawn from one lone cell would be ~60s. */
   if (!running) {
     running = true;
     queueMicrotask(schedule);

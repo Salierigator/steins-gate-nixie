@@ -1,22 +1,12 @@
 /**
  * Nixie text editor on canvas: the full BONX set, with caret, selection and flicker.
  *
- *   const editor = textEditor(host, { cellH: 60, cols: 16 });
- *   editor.value = 'El Psy Kongroo.';
- *   await editor.set({ cols: 24 }); // layout options re-blit, anything else rebuilds the atlas
- *   editor.set({ width: 800, height: 400 }); // frame in px: columns follow, rows fill it, the grid is centered
- *   editor.set();             // rebuild after changing --nixie-* tokens
- *   editor.over();            // does the text make the frame taller than `height`?
- *   editor.fit(8, 160);       // largest cellH on the 8 + n×0.5 grid, up to 160, whose text still fits
- *   editor.options;           // a copy of the current options
- *   editor.png(2);            // Promise<Blob> of the whole frame at 2×
- *   editor.el.addEventListener('input', ...);
- *
- * Colors and opacities are the --nixie-* tokens as seen from the editor element.
+ * `set(patch)` re-blits for layout options and rebuilds the atlas for anything else; bare
+ * `set()` picks up changed --nixie-* tokens, which it reads from the editor element.
  */
 
 import { glyphs } from '../nixie/glyphs.js';
-import { buildAtlas, readStyle } from './atlas.js';
+import { buildAtlas, cellGeom, colsIn, readStyle } from './atlas.js';
 import { layout } from './layout.js';
 import { flicker } from './flicker.js';
 import { bindInput } from './input.js';
@@ -24,20 +14,20 @@ import { png, pngSize } from './png.js';
 import { renderer } from './render.js';
 
 const DEFAULTS = {
-  cellH: 60, // px
+  cellH: 60,
   cols: 16, // ignored when `width` is set
-  width: null, // px
-  height: null, // px, grows with the text
-  gap: 0, // px between rows
+  width: null,
+  height: null, // the frame only grows past this
+  gap: 0,
   wrap: 'word', // 'word' | 'char'
   fill: true, // pad each row with unlit tubes up to `cols`
   sigma: 54.6, // halo, as #nxg in nixie-sprite.svg
   gain: 3.43,
-  gridW: 0, // grid stroke, font units
-  silMode: 'char', // cathode shadow: 'char' | 'digit'
+  gridW: 0, // font units
+  silMode: 'char', // 'char' | 'digit'
   flicker: true,
-  flickerRate: 1, // blinks per minute per lit character
-  flickerMs: 350, // longest blink
+  flickerRate: 1, // per minute per lit character
+  flickerMs: 350,
   flickerDepth: 0.9,
 };
 const STEP = 0.5; // cell heights `fit` may pick, counted from its `min`
@@ -93,13 +83,10 @@ export function textEditor(host, options) {
   function measure(cellH = view.opts.cellH) {
     const { G, opts } = view;
     if (!G || !opts.width || !opts.height) return null;
-    const cw = Math.max(1, Math.round((cellH * dp() * G.cw) / G.ch));
-    const s = cw / G.cw;
-    const ch = Math.round(G.ch * s);
-    const pad = Math.ceil((3 * opts.sigma + opts.gridW) * s) + 1;
-    const cols = Math.max(1, Math.floor((Math.round(opts.width * dp()) - 2 * pad) / cw));
+    const geom = cellGeom(G, opts, dp(), cellH);
+    const cols = colsIn(Math.round(opts.width * dp()), geom);
     const rows = layout(G, ta.value, { ...opts, cols }).rows.length;
-    return (rows - 1) * (ch + Math.round(opts.gap * dp())) + ch + 2 * pad;
+    return (rows - 1) * (geom.ch + Math.round(opts.gap * dp())) + geom.ch + 2 * geom.pad;
   }
 
   document.addEventListener('scroll', draw.schedule, { capture: true, passive: true }); // any scroller, not just the page
@@ -144,7 +131,6 @@ export function textEditor(host, options) {
       }
       return view.G ? build() : Promise.resolve();
     },
-    /** Is the text taller than the frame? */
     over() {
       const h = measure();
       return h !== null && h > frameH();

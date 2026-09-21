@@ -1,5 +1,4 @@
-/* Lock-wheel picker: each digit is a drum you drag, scroll or arrow through. Items sit on a
-   cylinder, so a digit rolls away along the curve instead of sliding flat. */
+/* Items sit on a cylinder, so a digit rolls away along the curve instead of sliding flat. */
 
 .picker {
   display: inline-flex;

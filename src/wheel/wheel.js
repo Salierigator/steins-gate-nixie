@@ -1,17 +1,13 @@
 /**
  * Lock-wheel value picker — seven digit drums, drag / scroll / arrow keys.
- *
- *   const p = picker(1.048596, (value) => render(value));
- *   p.el;       // <div class="picker">
- *   p.value();  // current number
- *   p.spin(1200); // free-spin every drum, land on a random value, then call onChange
- *
  * The first drum carries an extra '−' notch for negative values.
  */
 
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 const MINUS = '−';
 const HEAD = [MINUS, ...DIGITS];
+
+const mod = (a, n) => ((a % n) + n) % n;
 
 function drum(items, label, onSettle) {
   const el = document.createElement('div');
@@ -34,9 +30,9 @@ function drum(items, label, onSettle) {
   );
   el.append(cylinder);
 
-  /* `pos` is a float index and deliberately unbounded — the cylinder is periodic, so it can keep turning in one direction forever. */
+  /* A float index, deliberately unbounded: the cylinder is periodic, so it can keep turning one way forever. */
   let pos = 0;
-  const index = () => ((Math.round(pos) % items.length) + items.length) % items.length;
+  const index = () => mod(Math.round(pos), items.length);
 
   function render() {
     el.style.setProperty('--pos', pos);
@@ -102,7 +98,7 @@ function drum(items, label, onSettle) {
       pos = i;
       render();
     },
-    /* Free-spin for `ms`, reporting each notch that passes the window, then glide forward into a random notch. Resolves once parked. */
+    /* Free-spin for `ms`, reporting each notch that passes, then glide into a random one. */
     spin(ms) {
       const speed = 0.028 + Math.random() * 0.014; // notches per ms, a little different per drum
       const from = pos;
@@ -121,7 +117,7 @@ function drum(items, label, onSettle) {
           }
           const base = Math.ceil(pos);
           const target = Math.floor(Math.random() * items.length);
-          pos = base + (((target - base) % items.length) + items.length) % items.length;
+          pos = base + mod(target - base, items.length);
           el.classList.remove('is-spinning');
           render();
           resolve();
@@ -168,7 +164,7 @@ export function picker(initial, onChange) {
     .split('')
     .forEach((d, i) => drums[i + 1].set(Number(d)));
 
-  /* Roll every drum to a random worldline. Extra calls while spinning are ignored. */
+  /* Extra calls while spinning are ignored. */
   let spinning = false;
   async function spin(ms) {
     if (spinning) return;

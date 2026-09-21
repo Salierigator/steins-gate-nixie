@@ -1,5 +1,3 @@
-/* Page layout: credit, title, slogan, picker row and readout. */
-
 .credit {
   position: relative;
   z-index: 2;
@@ -45,8 +43,8 @@
   margin-top: var(--space-7);
 }
 
-/* Drawn as a mask so it takes the CRT amber instead of the SVG's own fill. The mask lives on
-   ::before and the filter on the button: on one element the mask would clip the halo away. */
+/* Masked so it takes the CRT amber, not the SVG's own fill. Mask on ::before, filter on the
+   button: together on one element the mask would clip the halo away. */
 .upa {
   --upa-color: var(--crt-text);
   --upa-core: var(--crt-core);
@@ -57,7 +55,6 @@
   position: relative;
   justify-self: end;
   translate: -1rem 0;
-  /* x (− left, + right), y (− up, + down), e.g. -1rem 0.5rem */
   padding: 0;
   border: 0;
   background: none;
@@ -121,8 +118,7 @@
   --nixie-grid-level: 1;
 }
 
-/* The wheels need 298px beside a 45px button, so under 24rem the row runs out of width and the
-   button drops below them. Above it nothing changes. */
+/* The wheels need 298px beside a 45px button: under 24rem the row runs out and the button drops below. */
 @media (max-width: 24rem) {
   .picker-row {
     grid-template-columns: 1fr;

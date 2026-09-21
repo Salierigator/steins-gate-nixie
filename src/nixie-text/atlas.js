@@ -1,5 +1,14 @@
 const canvas = (width, height) => Object.assign(document.createElement('canvas'), { width, height });
 
+/** One cell in whole device px, so blits never resample. `s` scales font units to those px. */
+export function cellGeom(G, opts, dpr, cellH = opts.cellH) {
+  const cw = Math.max(1, Math.round((cellH * dpr * G.cw) / G.ch));
+  const s = cw / G.cw;
+  return { cw, ch: Math.round(G.ch * s), pad: Math.ceil((3 * opts.sigma + opts.gridW) * s) + 1, s };
+}
+
+export const colsIn = (width, { cw, pad }) => Math.max(1, Math.floor((width - 2 * pad) / cw));
+
 export function readStyle(el) {
   const css = getComputedStyle(el);
   const v = (name) => css.getPropertyValue(`--nixie-${name}`).trim();
@@ -28,15 +37,13 @@ async function rasterize(svg, w, h) {
   }
 }
 
-/** Every glyph as the four meter layers plus a composited base tile; `cell(c, k)` recomposites one at brightness k. */
+/** Every glyph as the four meter layers, plus a base tile; `cell(c, k)` recomposites one at brightness k. */
 export async function buildAtlas(G, opts, style, dpr = window.devicePixelRatio || 1, chars = G.chars) {
-  const cw = Math.max(1, Math.round((opts.cellH * dpr * G.cw) / G.ch)); // integer device px: blits never resample
-  const s = cw / G.cw;
-  const pad = Math.ceil((3 * opts.sigma + opts.gridW) * s) + 1;
+  const { cw, ch, pad, s } = cellGeom(G, opts, dpr);
   const padU = pad / s;
-  const g = { dpr, cw, ch: Math.round(G.ch * s), pad };
+  const g = { dpr, cw, ch, pad };
   const tw = cw + 2 * pad;
-  const th = g.ch + 2 * pad;
+  const th = ch + 2 * pad;
   const per = Math.ceil(Math.sqrt((chars.length * th) / tw));
   const W = per * (tw + 2);
   const H = Math.ceil(chars.length / per) * (th + 2);
@@ -64,7 +71,7 @@ export async function buildAtlas(G, opts, style, dpr = window.devicePixelRatio |
     for (const [c, [x, y]] of index) {
       const markup = layer(l, c);
       if (!markup) continue;
-      body += `<svg x="${bx + x + pad}" y="${by + y + pad}" width="${cw}" height="${g.ch}" viewBox="0 0 ${G.cw} ${G.ch}" preserveAspectRatio="none" overflow="visible">${markup}</svg>`;
+      body += `<svg x="${bx + x + pad}" y="${by + y + pad}" width="${cw}" height="${ch}" viewBox="0 0 ${G.cw} ${G.ch}" preserveAspectRatio="none" overflow="visible">${markup}</svg>`;
     }
   }
   const filter =

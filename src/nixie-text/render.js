@@ -1,3 +1,4 @@
+import { colsIn } from './atlas.js';
 import { layout } from './layout.js';
 
 const CHUNK_PX = 1024; // device px of rows per canvas
@@ -5,7 +6,7 @@ const CHUNK_PX = 1024; // device px of rows per canvas
 /** Rows go into chunk canvases kept around the viewport, each redrawn only when its rows change. */
 export function renderer(view, flicker) {
   const { sheet, caret, ta, opts } = view;
-  const chunks = new Map(); // chunk index -> { cv, ctx, sig }
+  const chunks = new Map();
   let pitch = 0;
   let per = 1;
   let frame = 0;
@@ -35,7 +36,7 @@ export function renderer(view, flicker) {
     const fitRows = Math.max(1, Math.floor((minH - gridH(g, 1)) / pitch) + 1);
     if (view.dirty) {
       flicker.end();
-      if (opts.width) opts.cols = Math.max(1, Math.floor((minW - 2 * g.pad) / g.cw));
+      if (opts.width) opts.cols = colsIn(minW, g);
       view.cur = layout(view.G, ta.value, opts);
       while (view.cur.rows.length < fitRows) {
         view.cur.rows.push([]);

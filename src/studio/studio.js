@@ -1,10 +1,8 @@
 /**
  * Nixie text frame and its control panel.
  *
- *   studio(host, panel); // host gets the character strip and the editor, panel holds .panel-toggle and the controls form
- *
- * Form fields named after editor options go straight to editor.set(), fields named --nixie-* set that
- * token on the editor; `scale` only sets the PNG export size.
+ * Form fields named after editor options go straight to editor.set(); fields named --nixie-*
+ * set that token on the editor; `scale` only sets the PNG export size.
  */
 
 import { textEditor } from '../nixie-text/editor.js';
@@ -55,16 +53,14 @@ export function studio(host, panel) {
   const deep = [...form.querySelectorAll('.panel-advanced input')]; // the only fields Reset touches
   const ranges = form.querySelectorAll('[type="range"]');
   const base = {}; // token values from the stylesheet: what an empty style attribute renders
+  form.elements.scale.value = scale;
   for (const input of inputs) {
     const { name } = input;
     if (name.startsWith('--')) base[name] = input.value = tokens.getPropertyValue(name).trim();
-    else if (input.type === 'radio') {
-      if (name in options) input.checked = input.value === String(options[name]);
+    else if (name in options) {
+      if (input.type === 'radio') input.checked = input.value === String(options[name]);
+      else input.value = options[name];
     }
-    else if (name in options) input.value = options[name];
-  }
-  form.elements.scale.value = scale;
-  for (const input of inputs) {
     if (input.type === 'radio') input.defaultChecked = input.checked;
     else input.defaultValue = input.value;
   }
@@ -125,12 +121,14 @@ export function studio(host, panel) {
   function pair(from, value) {
     const r = RATIOS[form.elements.ratio.value];
     if (!r || (from !== 'width' && from !== 'height')) return {};
+    const wide = from === 'width';
     const [w, h] = [form.elements.width[0], form.elements.height[0]];
+    const [self, twin] = wide ? [w, h] : [h, w];
     const clamp = (input, v) => Math.min(Math.max(Math.round(v), Number(input.min)), Number(input.max));
-    const other = from === 'width' ? clamp(h, value / r) : clamp(w, value * r);
-    const want = from === 'width' ? value / r : value * r;
-    const size = Math.abs(other - want) > 0.5 ? clamp(from === 'width' ? w : h, from === 'width' ? other * r : other / r) : value;
-    const [width, height] = from === 'width' ? [size, other] : [other, size];
+    const want = wide ? value / r : value * r;
+    const other = clamp(twin, want);
+    const edited = Math.abs(other - want) > 0.5 ? clamp(self, wide ? other * r : other / r) : value;
+    const [width, height] = wide ? [edited, other] : [other, edited];
     setField('width', width);
     setField('height', height);
     return { width, height };
@@ -188,7 +186,7 @@ export function studio(host, panel) {
     if (!pumping) pump();
   }
 
-  /** Enter or leaving a typed box: a stray decimal snaps to the step, anything unusable goes back. */
+  /** A stray decimal snaps to the step, anything unusable goes back. */
   function commit(input) {
     const twin = [...form.elements[input.name]].find((other) => other !== input);
     if (input.type === 'number' && input.value) {

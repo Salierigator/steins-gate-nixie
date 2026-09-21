@@ -1,15 +1,11 @@
 /**
- * Character preset strip: a row of faces over the text frame.
- *
- *   host.append(presetStrip(apply)); // apply(char) gets the CHARS entry that was clicked
- *
- * The lit chip is the strip's own state: only a click moves it, so editing colors by hand
- * leaves the character picked.
+ * Character preset strip: a row of faces over the text frame, `apply(char)` on a click.
+ * The lit chip is the strip's own state, so editing colors by hand leaves the character picked.
  */
 
 import { CHARS } from './chars.js';
 
-/** A chip glows in its own color: a tight near-white core over a wide halo, as .upa does. */
+/** The near-white core of a chip's glow, as .upa does. */
 const core = (hex) => '#' + [1, 3, 5].map((i) => {
   const v = parseInt(hex.slice(i, i + 2), 16) / 255;
   return Math.round(255 * (v + (1 - v) * 0.72)).toString(16).padStart(2, '0');

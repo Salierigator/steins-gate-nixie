@@ -1,5 +1,3 @@
-/* Character presets over the text frame: gray until picked, then full color with its own glow. */
-
 .preset-strip {
   --chip: 40px;
 
@@ -23,8 +21,8 @@
   outline-offset: 3px;
 }
 
-/* Square by ratio, not by a second length: on a narrow screen the row shrinks the chips and a
-   fixed height would squash the faces instead of scaling them. */
+/* Square by ratio, not a second length: a narrow row shrinks the chips, and a fixed height
+   would squash the faces instead of scaling them. */
 .preset img {
   display: block;
   width: var(--chip);
@@ -49,7 +47,7 @@
   }
 }
 
-/* The art is 54px: 40px is an upscale from 2dppx up, but a downscale at dpr 1, where
+/* The art is 54px, so 40px upscales from 2dppx up but downscales at dpr 1, where
    nearest-neighbour would drop pixels instead of sharpening them. */
 @media (min-resolution: 2dppx) {
   .preset img {

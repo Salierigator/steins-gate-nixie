@@ -1,8 +1,11 @@
 import { blink, delay } from '../nixie/blink.js';
 
+const ROW = 1 << 16; // cells per row a key can address
+const keyOf = (r, i) => r * ROW + i;
+
 /** Meter blinks over the lit cells on screen, each step redrawing only the blinking cell. */
 export function flicker(view, redrawCell) {
-  const blinks = new Map(); // r * 65536 + i -> { r, i, keyframes, duration, t0, k }
+  const blinks = new Map();
   let lit = [];
   let timer = 0;
   let ticking = 0;
@@ -24,7 +27,7 @@ export function flicker(view, redrawCell) {
     const key = lit[Math.floor(Math.random() * lit.length)];
     if (blinks.has(key)) return;
     const { flickerMs, flickerDepth } = view.opts;
-    blinks.set(key, { r: key >> 16, i: key & 65535, ...blink(flickerMs, 1 - flickerDepth), t0: performance.now(), k: 1 });
+    blinks.set(key, { r: Math.floor(key / ROW), i: key % ROW, ...blink(flickerMs, 1 - flickerDepth), t0: performance.now(), k: 1 });
     ticking ||= requestAnimationFrame(tick);
   }
 
@@ -55,13 +58,13 @@ export function flicker(view, redrawCell) {
   }
 
   return {
-    level: (r, i) => blinks.get(r * 65536 + i)?.k ?? 1,
+    level: (r, i) => blinks.get(keyOf(r, i))?.k ?? 1,
 
     rows(v0, v1) {
       const next = [];
       for (let r = v0; r <= v1; r++) {
         view.cur.rows[r].forEach((cell, i) => {
-          if (view.G.lit.has(cell.c)) next.push(r * 65536 + i);
+          if (view.G.lit.has(cell.c)) next.push(keyOf(r, i));
         });
       }
       const changed = next.length !== lit.length;
