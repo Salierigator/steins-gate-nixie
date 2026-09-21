@@ -68,7 +68,7 @@
   max-width: 100%;
   margin-inline: auto;
   outline: 1px solid rgb(var(--crt-tint) / 0.7);
-  box-shadow: 0 0 14px var(--crt-halo);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--nixie-lit) 50%, transparent);
 }
 
 .panel {
