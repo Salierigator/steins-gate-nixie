@@ -11,6 +11,7 @@ import { presetStrip } from '../presets/presets.js';
 
 const RATIOS = { '16:9': 16 / 9, '9:16': 9 / 16, '4:3': 4 / 3, '3:4': 3 / 4, '1:1': 1 };
 const LOCAL = new Set(['scale', 'ratio']); // panel-only fields, never editor options
+const FIT_MIN = 0.2; // Fit stays quiet until it would change the text size by this much
 
 export function studio(host, panel) {
   const form = panel.querySelector('form');
@@ -92,8 +93,10 @@ export function studio(host, panel) {
     const now = editor.options.cellH; // what is drawn, not what a half-typed box says
     const best = editor.fit(Number(cell.min), Number(cell.max));
     stuck = over && best === null;
-    // a free frame only grows the text to fill it; a locked one also shrinks it back into shape
-    target = best !== null && best !== now && (over || best > now) ? best : null;
+    /* Overflow always offers the way back, so the warning never shows without its cure; a frame
+       with room to spare only speaks up once the text size would really change. */
+    const worth = best !== null && (over || (best > now && (best - now) / now > FIT_MIN));
+    target = worth ? best : null;
     fit.hidden = target === null && !stuck;
     if (fit.hidden) return;
     fit.textContent = stuck ? "can't fit" : '[ Fit ? ]';
