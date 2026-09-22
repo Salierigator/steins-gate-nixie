@@ -150,7 +150,7 @@ export function textEditor(host, options) {
       return lo < 0 ? null : min + lo * STEP;
     },
 
-    pngSize: (scale) => pngSize(view, scale),
-    png: (scale) => png(view, scale),
+    pngSize: (scale, frame) => pngSize(view, scale, frame),
+    png: (scale, frame) => png(view, scale, frame),
   };
 }

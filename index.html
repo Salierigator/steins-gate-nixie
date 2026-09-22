@@ -98,6 +98,13 @@
           <output for="panel-scale"></output>
           <input id="panel-scale" name="scale" type="range" min="1" max="4" step="0.5" />
         </div>
+        <div class="panel-field">
+          <span id="panel-frame">Frame</span>
+          <div class="panel-choice" role="radiogroup" aria-labelledby="panel-frame">
+            <label><input name="frame" type="radio" value="true" />On</label>
+            <label><input name="frame" type="radio" value="false" checked />Off</label>
+          </div>
+        </div>
         <button class="panel-save" type="button">Save PNG</button>
         <div class="panel-more">
           <details class="panel-advanced">

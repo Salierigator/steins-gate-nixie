@@ -10,7 +10,7 @@ import { fits } from '../nixie-text/png.js';
 import { presetStrip } from '../presets/presets.js';
 
 const RATIOS = { '16:9': 16 / 9, '9:16': 9 / 16, '4:3': 4 / 3, '3:4': 3 / 4, '1:1': 1 };
-const LOCAL = new Set(['scale', 'ratio']); // panel-only fields, never editor options
+const LOCAL = new Set(['scale', 'ratio', 'frame']); // panel-only fields, never editor options
 const FIT_MIN = 0.2; // Fit stays quiet until it would change the text size by this much
 
 export function studio(host, panel) {
@@ -28,6 +28,7 @@ export function studio(host, panel) {
     fill: true,
   };
   let scale = 2;
+  let framed = form.elements.frame.value === 'true';
   const frame = document.createElement('div');
   frame.className = 'studio-frame';
   host.append(presetStrip(preset), frame);
@@ -76,7 +77,7 @@ export function studio(host, panel) {
   let stuck = false; // the smallest text size still does not fit
 
   function showSize() {
-    const [w, h] = editor.pngSize(scale);
+    const [w, h] = editor.pngSize(scale, framed);
     size.value = `${scale}× : ${w}×${h}`;
     const [fw, fh] = editor.pngSize(1);
     dims.textContent = `${fw} × ${fh} px`;
@@ -210,6 +211,11 @@ export function studio(host, panel) {
     const { name, value } = target;
     if (typed(target)) return; // waits for Enter or for the box to lose focus
     if (deep.includes(target)) drop();
+    if (name === 'frame') {
+      framed = parse(value);
+      showSize();
+      return;
+    }
     if (name === 'ratio') {
       flush(); // a width still in flight would fight the new pairing
       const locked = pair('width', Number(form.elements.width[0].value));
@@ -307,11 +313,11 @@ export function studio(host, panel) {
   form.addEventListener('submit', (event) => event.preventDefault());
 
   save.addEventListener('click', async () => {
-    const [w, h] = editor.pngSize(scale);
+    const [w, h] = editor.pngSize(scale, framed);
     let s = scale;
-    while (s > 0.1 && !fits(...editor.pngSize(s))) s = Math.floor(s * 90) / 100;
+    while (s > 0.1 && !fits(...editor.pngSize(s, framed))) s = Math.floor(s * 90) / 100;
     if (s !== scale) {
-      const [w2, h2] = editor.pngSize(s);
+      const [w2, h2] = editor.pngSize(s, framed);
       if (s <= 0.1) return alert(`${w}×${h} px is too large for this browser to save.`);
       if (!confirm(`${w}×${h} px is larger than this browser can save.\nSave at ${s}× (${w2}×${h2} px) instead?`)) return;
     }
@@ -319,7 +325,7 @@ export function studio(host, panel) {
     save.disabled = true;
     try {
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(await editor.png(s));
+      a.href = URL.createObjectURL(await editor.png(s, framed));
       a.download = 'nixie.png';
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
