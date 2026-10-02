@@ -6,7 +6,7 @@
  */
 
 import { glyphs } from '../nixie/glyphs.js';
-import { buildAtlas, cellGeom, colsIn, readStyle } from './atlas.js';
+import { atlasDpr, buildAtlas, cellGeom, colsIn, readStyle } from './atlas.js';
 import { layout } from './layout.js';
 import { flicker } from './flicker.js';
 import { bindInput } from './input.js';
@@ -66,27 +66,28 @@ export function textEditor(host, options) {
     job = (async () => {
       do {
         stale = false;
-        view.atlas = await buildAtlas(view.G, view.opts, readStyle(el));
-        view.dirty = true;
-        draw.reset();
-        draw.render();
+        try {
+          view.atlas = await buildAtlas(view.G, view.opts, readStyle(el), atlasDpr(view.G, view.opts));
+          view.dirty = true;
+          draw.reset();
+          draw.render();
+        } catch (error) {
+          console.error(error);
+        }
       } while (stale);
       job = null;
     })();
     return job;
   }
 
-  const dp = () => window.devicePixelRatio || 1;
-  const frameH = () => Math.round(view.opts.height * dp());
-
-  /** Height the rows need in device px, without building an atlas; null when there is no frame yet. */
   function measure(cellH = view.opts.cellH) {
     const { G, opts } = view;
     if (!G || !opts.width || !opts.height) return null;
-    const geom = cellGeom(G, opts, dp(), cellH);
-    const cols = colsIn(Math.round(opts.width * dp()), geom);
+    const dpr = atlasDpr(G, opts, cellH);
+    const geom = cellGeom(G, opts, dpr, cellH);
+    const cols = colsIn(Math.round(opts.width * dpr), geom);
     const rows = layout(G, ta.value, { ...opts, cols }).rows.length;
-    return (rows - 1) * (geom.ch + Math.round(opts.gap * dp())) + geom.ch + 2 * geom.pad;
+    return (rows - 1) * (geom.ch + Math.round(opts.gap * dpr)) + geom.ch + 2 * geom.pad - Math.round(opts.height * dpr);
   }
 
   document.addEventListener('scroll', draw.schedule, { capture: true, passive: true }); // any scroller, not just the page
@@ -133,18 +134,17 @@ export function textEditor(host, options) {
     },
     over() {
       const h = measure();
-      return h !== null && h > frameH();
+      return h !== null && h > 0;
     },
 
     /** Largest cell height on the `min` grid, no larger than `max`, whose text still fits the frame; null if none does. */
     fit(min = 1, max = view.opts.cellH) {
       if (measure() === null) return null;
-      const limit = frameH();
       let lo = -1; // steps above `min`, all of which fit; -1 once `min` itself is too tall
       let hi = Math.floor((max - min) / STEP) + 1;
       while (hi - lo > 1) {
         const mid = Math.floor((lo + hi) / 2);
-        if (measure(min + mid * STEP) <= limit) lo = mid;
+        if (measure(min + mid * STEP) <= 0) lo = mid;
         else hi = mid;
       }
       return lo < 0 ? null : min + lo * STEP;

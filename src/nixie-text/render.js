@@ -169,7 +169,10 @@ export function renderer(view, flicker) {
   }
 
   function reset() {
-    for (const c of chunks.values()) c.cv.remove();
+    for (const c of chunks.values()) {
+      c.cv.remove();
+      c.cv.width = c.cv.height = 0;
+    }
     chunks.clear();
   }
 

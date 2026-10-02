@@ -1,4 +1,5 @@
 const canvas = (width, height) => Object.assign(document.createElement('canvas'), { width, height });
+const MAX_AREA = 4096 * 4096; // iOS draws nothing into a canvas with more px than this
 
 /** One cell in whole device px, so blits never resample. `s` scales font units to those px. */
 export function cellGeom(G, opts, dpr, cellH = opts.cellH) {
@@ -8,6 +9,24 @@ export function cellGeom(G, opts, dpr, cellH = opts.cellH) {
 }
 
 export const colsIn = (width, { cw, pad }) => Math.max(1, Math.floor((width - 2 * pad) / cw));
+
+/** One layer's tiles for `n` glyphs, packed near square; the atlas lays four of these out 2×2. */
+function sheet({ cw, ch, pad }, n) {
+  const tw = cw + 2 * pad;
+  const th = ch + 2 * pad;
+  const per = Math.ceil(Math.sqrt((n * th) / tw));
+  return { tw, th, per, W: per * (tw + 2), H: Math.ceil(n / per) * (th + 2) };
+}
+
+/** Device px per CSS px for the editor's atlas: the screen's own, lowered until its 2×2 layer canvas fits MAX_AREA. */
+export function atlasDpr(G, opts, cellH = opts.cellH, dpr = window.devicePixelRatio || 1) {
+  const area = (k) => {
+    const { W, H } = sheet(cellGeom(G, opts, k, cellH), G.chars.length);
+    return 4 * W * H;
+  };
+  while (area(dpr) > MAX_AREA) dpr *= 0.99 * Math.sqrt(MAX_AREA / area(dpr));
+  return dpr;
+}
 
 export function readStyle(el) {
   const css = getComputedStyle(el);
@@ -25,28 +44,25 @@ export function readStyle(el) {
 
 async function rasterize(svg, w, h) {
   const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+  const out = canvas(w, h);
   try {
     const img = new Image(w, h);
     img.src = url;
     await img.decode();
-    const out = canvas(w, h);
     out.getContext('2d').drawImage(img, 0, 0);
     return await createImageBitmap(out); // forces the deferred SVG raster now, without a GPU readback
   } finally {
     URL.revokeObjectURL(url);
+    out.width = out.height = 0;
   }
 }
 
 /** Every glyph as the four meter layers, plus a base tile; `cell(c, k)` recomposites one at brightness k. */
-export async function buildAtlas(G, opts, style, dpr = window.devicePixelRatio || 1, chars = G.chars) {
+export async function buildAtlas(G, opts, style, dpr, chars = G.chars) {
   const { cw, ch, pad, s } = cellGeom(G, opts, dpr);
   const padU = pad / s;
   const g = { dpr, cw, ch, pad };
-  const tw = cw + 2 * pad;
-  const th = ch + 2 * pad;
-  const per = Math.ceil(Math.sqrt((chars.length * th) / tw));
-  const W = per * (tw + 2);
-  const H = Math.ceil(chars.length / per) * (th + 2);
+  const { tw, th, per, W, H } = sheet(g, chars.length);
   const index = new Map(chars.map((c, k) => [c, [(k % per) * (tw + 2), Math.floor(k / per) * (th + 2)]]));
   const band = (l) => [(l % 2) * W, Math.floor(l / 2) * H]; // four layers in a 2×2 grid, one decode
 
@@ -109,6 +125,8 @@ export async function buildAtlas(G, opts, style, dpr = window.devicePixelRatio |
   const base = canvas(W, H);
   const ctx = base.getContext('2d');
   for (const [c, [x, y]] of index) ctx.drawImage(cell(c, 1), x, y);
+  const bitmap = await createImageBitmap(base);
+  base.width = base.height = 0;
 
-  return { g, tw, th, index, cell, base: await createImageBitmap(base) };
+  return { g, tw, th, index, cell, base: bitmap };
 }
