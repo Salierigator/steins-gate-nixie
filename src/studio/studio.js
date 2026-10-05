@@ -138,56 +138,22 @@ export function studio(host, panel) {
     return { width, height };
   }
 
-  /* A drag repaints the fields at once, but the editor only gets the newest value once it is free
-     again, then rests for half of what that update cost so the browser can keep drawing the slider. */
-  let queued = null;
-  let pumping = false;
-
-  /** Land what a drag still owes before changing the same fields from somewhere else. */
-  function flush() {
-    if (!queued) return;
-    const run = queued;
-    queued = null;
-    run();
-  }
-
-  async function pump() {
-    pumping = true;
-    while (queued) {
-      const run = queued;
-      queued = null;
-      const t = performance.now();
-      await run();
-      showSize();
-      const rest = Math.min(200, Math.max(16, (performance.now() - t) / 2));
-      await new Promise((done) => setTimeout(done, rest));
-    }
-    pumping = false;
-  }
+  let landing = null;
 
   function push(name, value, live) {
-    if (!live) flush();
     setField(name, value);
     if (name === 'scale') {
       scale = Number(value);
       showSize();
       return;
     }
-    let run;
-    if (name.startsWith('--')) {
-      editor.el.style.setProperty(name, value);
-      run = () => editor.set();
-    } else {
-      const patch = { [name]: Number(value), ...pair(name, Number(value)) };
-      run = () => editor.set(patch);
-    }
-    if (!live) {
-      run();
-      showSize();
-      return;
-    }
-    queued = run;
-    if (!pumping) pump();
+    let patch = {};
+    if (name.startsWith('--')) editor.el.style.setProperty(name, value);
+    else patch = { [name]: Number(value), ...pair(name, Number(value)) };
+    const done = editor.set(patch, live);
+    if (done === landing) return;
+    landing = done;
+    done.then(showSize);
   }
 
   /** A stray decimal snaps to the step, anything unusable goes back. */
@@ -217,7 +183,6 @@ export function studio(host, panel) {
       return;
     }
     if (name === 'ratio') {
-      flush(); // a width still in flight would fight the new pairing
       const locked = pair('width', Number(form.elements.width[0].value));
       if (locked.width) editor.set(locked); // Free changes nothing on its own
       showSize();
@@ -233,11 +198,11 @@ export function studio(host, panel) {
 
   form.addEventListener('change', ({ target }) => {
     if (typed(target)) commit(target);
+    else if (target.type === 'range' || target.type === 'color') push(target.name, target.value, false);
   });
 
   /* Every changed field onto the editor at once, after the form itself was reset or put back. */
   function sync() {
-    flush();
     const was = editor.el.getAttribute('style') ?? '';
     const now = editor.options;
     const patch = {};
@@ -300,7 +265,6 @@ export function studio(host, panel) {
 
   fit.addEventListener('click', () => {
     if (target === null) return;
-    flush();
     setField('cellH', target);
     editor.set({ cellH: target });
     showSize();

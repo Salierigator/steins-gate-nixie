@@ -57,17 +57,26 @@ export function textEditor(host, options) {
 
   let job = null;
   let stale = false;
+  let drafting = false;
+  let settle = 0;
 
-  function build() {
+  const glyphsOf = (text) => [...new Set([' ', ...text])].filter((c) => c in view.G.M.map);
+
+  function build(quick = false) {
+    drafting = quick;
+    clearTimeout(settle);
+    if (quick) settle = setTimeout(() => build(), 1000);
     if (job) {
-      stale = true; // finish this build, then run once more
+      stale = true;
       return job;
     }
     job = (async () => {
       do {
         stale = false;
         try {
-          view.atlas = await buildAtlas(view.G, view.opts, readStyle(el), atlasDpr(view.G, view.opts));
+          const chars = glyphsOf(ta.value);
+          const dpr = atlasDpr(view.G, view.opts, chars.length, drafting);
+          view.atlas = await buildAtlas(view.G, view.opts, readStyle(el), dpr, chars);
           view.dirty = true;
           draw.reset();
           draw.render();
@@ -80,10 +89,16 @@ export function textEditor(host, options) {
     return job;
   }
 
+  /** A glyph the atlas lacks shows as a blank tube until this rebuild lands. */
+  function ensure() {
+    if (view.atlas && glyphsOf(ta.value).some((c) => !view.atlas.index.has(c))) build();
+  }
+  ta.addEventListener('input', ensure);
+
   function measure(cellH = view.opts.cellH) {
     const { G, opts } = view;
     if (!G || !opts.width || !opts.height) return null;
-    const dpr = atlasDpr(G, opts, cellH);
+    const dpr = atlasDpr(G, { ...opts, cellH }, glyphsOf(ta.value).length);
     const geom = cellGeom(G, opts, dpr, cellH);
     const cols = colsIn(Math.round(opts.width * dpr), geom);
     const rows = layout(G, ta.value, { ...opts, cols }).rows.length;
@@ -119,9 +134,10 @@ export function textEditor(host, options) {
       ta.value = text;
       view.dirty = true;
       draw.schedule();
+      ensure();
     },
-    /** Resolves once the change is on screen, so a caller can pace a drag by what it really costs. */
-    set(patch = {}) {
+    /** Resolves once the change is on screen. */
+    set(patch = {}, draft = false) {
       Object.assign(view.opts, patch);
       const keys = Object.keys(patch);
       if (keys.some((key) => FLICKER.has(key))) fx.restart();
@@ -130,7 +146,7 @@ export function textEditor(host, options) {
         draw.schedule();
         return new Promise((done) => requestAnimationFrame(() => done()));
       }
-      return view.G ? build() : Promise.resolve();
+      return view.G ? build(draft) : Promise.resolve();
     },
     over() {
       const h = measure();

@@ -16,7 +16,8 @@ export function renderer(view, flicker) {
 
   function blitCell(ctx, r, i, x, y) {
     const { atlas } = view;
-    const c = view.cur.rows[r][i]?.c ?? ' ';
+    let c = view.cur.rows[r][i]?.c ?? ' ';
+    if (!atlas.index.has(c)) c = ' ';
     const k = flicker.level(r, i);
     if (k !== 1) {
       ctx.drawImage(atlas.cell(c, k), x, y);

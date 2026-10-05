@@ -1,5 +1,6 @@
 const canvas = (width, height) => Object.assign(document.createElement('canvas'), { width, height });
 const MAX_AREA = 4096 * 4096; // iOS draws nothing into a canvas with more px than this
+const DRAFT_AREA = 1024 * 1024;
 
 /** One cell in whole device px, so blits never resample. `s` scales font units to those px. */
 export function cellGeom(G, opts, dpr, cellH = opts.cellH) {
@@ -18,13 +19,15 @@ function sheet({ cw, ch, pad }, n) {
   return { tw, th, per, W: per * (tw + 2), H: Math.ceil(n / per) * (th + 2) };
 }
 
-/** Device px per CSS px for the editor's atlas: the screen's own, lowered until its 2×2 layer canvas fits MAX_AREA. */
-export function atlasDpr(G, opts, cellH = opts.cellH, dpr = window.devicePixelRatio || 1) {
+/** Device px per CSS px for an atlas of `n` glyphs: the screen's own, lowered until its 2×2 layer canvas fits MAX_AREA, or DRAFT_AREA for a draft. */
+export function atlasDpr(G, opts, n, draft = false) {
+  const max = draft ? DRAFT_AREA : MAX_AREA;
   const area = (k) => {
-    const { W, H } = sheet(cellGeom(G, opts, k, cellH), G.chars.length);
+    const { W, H } = sheet(cellGeom(G, opts, k), n);
     return 4 * W * H;
   };
-  while (area(dpr) > MAX_AREA) dpr *= 0.99 * Math.sqrt(MAX_AREA / area(dpr));
+  let dpr = window.devicePixelRatio || 1;
+  while (area(dpr) > max) dpr *= 0.99 * Math.sqrt(max / area(dpr));
   return dpr;
 }
 
