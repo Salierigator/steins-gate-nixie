@@ -49,7 +49,7 @@ You can change each layer's color under **Advanced** in Controls. That's how I m
 
 ## Notes
 
-**-** Only the 113 BONX characters: ASCII plus a few symbols like `¥ © ® ™ †`. Anything else, like accented letters, shows as an empty tube.
+**-** Only 113 characters: ASCII plus a few symbols like `¥ © ® ™ †`. Anything else, like accented letters, shows as an empty tube.
 
 **-** To get the divergence meter's decimal point, type `•` instead of `.`.
 
@@ -67,7 +67,7 @@ Then open http://localhost:8000.
 
 ## Credits
 
-This is a non-commercial fan project, not affiliated with or endorsed by the rights holders.
+This is a non commercial fan project, not affiliated with or endorsed by the rights holders.
 
 - *Steins;Gate* © 5pb. / Nitroplus
 - Original nixie design by **SH@RP**
